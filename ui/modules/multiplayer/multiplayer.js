@@ -388,6 +388,8 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 
 			if (data.color != null)
 				nameElement.style.backgroundColor = data.color
+			else
+				nameElement.style.backgroundColor = "rgba(0, 0, 0, 0)"
 
 			nameElement.textContent = data.username;
 			avatarElement.src = data.avatar;
