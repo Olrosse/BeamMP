@@ -4,6 +4,8 @@
 
 local M = {}
 
+local floor = math.floor
+
 local function toggleBeamMinMax(controllerName, funcName, tempTable, ...)
 	for _,group in pairs(...) do
 		local pressure = controller.getController(controllerName).isBeamGroupAtPressureLevel(group, "minPressure")
@@ -12,6 +14,39 @@ local function toggleBeamMinMax(controllerName, funcName, tempTable, ...)
 		else
 			controller.getController(controllerName).setBeamMin({group})
 		end
+	end
+end
+
+--pneumatics/actuators
+local beamGroups = {}
+
+local function setBeamGroupValveState(controllerName, funcName, tempTable, ...)
+	local groupName , valveState = ...
+	local flooredvalveState = floor(valveState * 10) / 10
+	if not beamGroups[groupName] or beamGroups[groupName] ~= flooredvalveState then
+		beamGroups[groupName] = flooredvalveState
+		tempTable.variables[2] = flooredvalveState
+		controllerSyncVE.sendControllerData(tempTable)
+	end
+	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
+end
+
+local function setBeamGroupsValveState(controllerName, funcName, tempTable, ...)
+	local beamGroup, valveState = ...
+	for _, g in pairs(beamGroup) do
+		controller.getController(controllerName).setBeamGroupValveState(g, valveState)
+	end
+end
+
+local function toggleBeamGroupValveState(controllerName, funcName, tempTable, ...)
+	local currentValveState = controller.getController(controllerName).getValveState(...)
+	local valveState = currentValveState < 0 and 1 or -1
+	controller.getController(controllerName).setBeamGroupValveState(...,valveState)
+end
+
+local function toggleBeamGroupsValveState(controllerName, funcName, tempTable, ...)
+	for _,groupName in pairs(...) do
+		toggleBeamGroupValveState(controllerName, funcName, tempTable, groupName)
 	end
 end
 
@@ -38,16 +73,20 @@ local includedControllerTypes = {
 		["setMomentaryDecrease"] = {}
 	},
 
-	--["pneumatics/actuators"] = { -- this works but is disabled because it causes unnecessary spam from the T-series air suspension which is the only official part that uses it AFAIK
-	--	["setBeamGroupValveState"] = {},
-	--	["toggleBeamGroupValveState"] = {},
-	--	["setBeamGroupsValveState"] = {
-	--		compare = true
-	--		},
-	--	["toggleBeamGroupsValveState"] = {
-	--		compare = true
-	--		}
-	--},
+	["pneumatics/actuators"] = {
+		["setBeamGroupValveState"] = {
+			ownerFunction = setBeamGroupValveState
+		},
+		["toggleBeamGroupValveState"] = {
+			ownerFunction = toggleBeamMinMax
+		},
+		["setBeamGroupsValveState"] = {
+			ownerFunction = setBeamGroupsValveState
+		},
+		["toggleBeamGroupsValveState"] = {
+			ownerFunction = toggleBeamGroupsValveState
+		}
+	},
 }
 
 
@@ -59,6 +98,11 @@ local function loadFunctions()
 	end
 end
 
+local function onReset()
+	beamGroups = {}
+end
+
 M.loadControllerSyncFunctions = loadFunctions
+M.onReset = onReset
 
 return M
