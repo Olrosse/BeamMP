@@ -28,77 +28,29 @@ local function setSpeedCoef(controllerName, funcName, tempTable, ...)
 	controllerSyncVE.sendControllerData(tempTable)
 	movementSpeedCoef = ... --keeping track of the movementSpeedCoef state so the toggle function works properly
 	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
-
-	electrics.values.unicycle_speed = ... -- for cross compatibility, remove when controller sync is out for everyone
-end
-
--- the functions below are for cross compatibility, remove when controller sync is out for everyone --
--- electrics.values.unicycle_camera = -cameraRotation:toEulerYXZ().x
-local function unicycle_camera(controllerName, funcName, tempTable, ...)
-	controllerSyncVE.cacheState(tempTable)
-
-	electrics.values.unicycle_camera = -tempTable.variables[1].cameraRotation:toEulerYXZ().x
-	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
-end
-
---	electrics.values.unicycle_walk_x = guardedWalkVector.x
-local function unicycle_walk_x(controllerName, funcName, tempTable, ...)
-	controllerSyncVE.sendControllerData(tempTable)
-	electrics.values.unicycle_walk_x = ...
-	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
-end
---	electrics.values.unicycle_walk_y = guardedWalkVector.y
-local function unicycle_walk_y(controllerName, funcName, tempTable, ...)
-	controllerSyncVE.sendControllerData(tempTable)
-	electrics.values.unicycle_walk_y = ...
-	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
-end
-
---	electrics.values.unicycle_jump = jumpCooldown > 0.1
-local function unicycle_jump(controllerName, funcName, tempTable, ...)
-	controllerSyncVE.sendControllerData(tempTable)
-	electrics.values.unicycle_jump = true
-
-	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
-end
---	electrics.values.unicycle_crouch = (isCrouching and -1 or 1)
-
-local function crouch(controllerName, funcName, tempTable, ...)
-	controllerSyncVE.sendControllerData(tempTable)
-	electrics.values.unicycle_crouch = ...
-
-	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
 end
 
 local includedControllerTypes = {
 	["playerController"] = {
 		["setCameraControlData"] = {
-			compare = true,
-			ownerFunction = unicycle_camera
+			compare = true
 			},
 		["jump"] = {
-			compare = false,
-			ownerFunction = unicycle_jump
+			compare = false
 			},
 		["walkLeftRightRaw"] = {
 			compare = true,
-			storeState = true,
-			ownerFunction = unicycle_walk_x
+			storeState = true
 			},
 		["walkLeftRight"] = {
-			compare = false,
-			storeState = true,
-			ownerFunction = unicycle_walk_x
+			storeState = true
 			},
 		["walkUpDownRaw"] = {
 			compare = true,
-			storeState = true,
-			ownerFunction = unicycle_walk_y
+			storeState = true
 			},
 		["walkUpDown"] = {
-			compare = false,
-			storeState = true,
-			ownerFunction = unicycle_walk_y
+			storeState = true
 			},
 		["setSpeedCoef"] = {
 			compare = true,
@@ -106,13 +58,11 @@ local includedControllerTypes = {
 			ownerFunction = setSpeedCoef
 			},
 		["toggleSpeedCoef"] = {
-			compare = false,
 			ownerFunction = customtoggleSpeed
 			},
 		["crouch"] = {
 			compare = true,
-			storeState = true,
-			ownerFunction = crouch
+			storeState = true
 			},
 		["toggleCrouch"] = {
 			ownerFunction = customtogglecrouch
@@ -122,24 +72,7 @@ local includedControllerTypes = {
 
 local function onReset()
 	isCrouching = false
-	electrics.values.unicycle_crouch = 0 -- for cross compatibility, remove when controller sync is out for everyone
 end
-
-local lastunicycle_jump = 1
-local time = 0
-local function updateGFX(dt) -- this is all super wacky but it was the only way i got jump to work across BeamMP versions
-	time = time + dt
-	if time > 1/15 then
-		time = 0
-		if electrics.values.unicycle_jump == 1 and lastunicycle_jump == 1 then
-			electrics.values.unicycle_jump = false
-		end
-		lastunicycle_jump = electrics.values.unicycle_jump
-	end
-	if electrics.values.unicycle_jump == 1 then
-		electrics.values.unicycle_jump = true --  it would only send 1s and 0s, electricsVE checks for true on receive, but for whatever reason setting it to true for multiple frames works
-	end
-end --TODO definetly remove all this once controller sync is released to everyone
 
 local function loadFunctions()
 	if controllerSyncVE ~= nil then
@@ -151,6 +84,5 @@ end
 
 M.loadControllerSyncFunctions = loadFunctions
 M.onReset = onReset
-M.updateGFX = updateGFX
 
 return M
