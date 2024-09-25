@@ -207,8 +207,8 @@ local includedControllerTypes = {
 	},
 
 	["lightbar"] = {
-		["toggleMode"] = {
-		}
+		["toggleMode"] = {},
+		["setModeIndex"] = {}
 	},
 
 	["postCrashBrake"] = {
