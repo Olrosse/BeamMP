@@ -70,7 +70,9 @@ local includedControllerTypes = {
 		["toggleMaxHeight"] = {},
 		["setMaxHeight"] = {},
 		["setMomentaryIncrease"] = {},
-		["setMomentaryDecrease"] = {}
+		["setMomentaryDecrease"] = {},
+		["setAdjustmentRate"] = {},
+		["stopAdjusting"] = {}
 	},
 
 	["pneumatics/actuators"] = {
