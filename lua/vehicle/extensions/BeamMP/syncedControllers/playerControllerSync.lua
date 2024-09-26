@@ -23,7 +23,6 @@ local function customtoggleSpeed()
 	controller.getControllerSafe("playerController").setSpeed(movementSpeedCoef)
 end
 
---	electrics.values.unicycle_speed = movementSpeedCoef
 local function setSpeedCoef(controllerName, funcName, tempTable, ...)
 	controllerSyncVE.sendControllerData(tempTable)
 	movementSpeedCoef = ... --keeping track of the movementSpeedCoef state so the toggle function works properly
