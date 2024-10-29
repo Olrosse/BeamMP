@@ -19,14 +19,17 @@ end
 
 --pneumatics/actuators
 local beamGroups = {}
+local beamGroupsToSend = {}
 
 local function setBeamGroupValveState(controllerName, funcName, tempTable, ...)
 	local groupName , valveState = ...
 	local flooredvalveState = floor(valveState * 10) / 10
 	if not beamGroups[groupName] or beamGroups[groupName] ~= flooredvalveState then
 		beamGroups[groupName] = flooredvalveState
-		tempTable.variables[2] = flooredvalveState
-		controllerSyncVE.sendControllerData(tempTable)
+		if not beamGroupsToSend[groupName] then
+			beamGroupsToSend[groupName] = tempTable
+		end
+		beamGroupsToSend[groupName].variables[2] = flooredvalveState
 	end
 	controllerSyncVE.OGcontrollerFunctionsTable[controllerName][funcName](...)
 end
@@ -91,6 +94,12 @@ local includedControllerTypes = {
 	},
 }
 
+local function getBeamMPControllerData()
+	for groupName, groupData in pairs(beamGroupsToSend) do
+		controllerSyncVE.sendControllerData(groupData)
+		beamGroupsToSend[groupName] = nil
+	end
+end
 
 local function loadFunctions()
 	if controllerSyncVE ~= nil then
@@ -105,6 +114,7 @@ local function onReset()
 end
 
 M.loadControllerSyncFunctions = loadFunctions
+M.getBeamMPControllerData = getBeamMPControllerData
 M.onReset = onReset
 
 return M
