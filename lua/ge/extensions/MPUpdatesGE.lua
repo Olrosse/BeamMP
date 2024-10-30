@@ -78,7 +78,7 @@ local function onUpdate(dt)
 		
 		controllerTimer = controllerTimer + dt
 		if controllerTimer >= controllerTickrate then
-			controllerTimer = 0
+			controllerTimer = (controllerTimer - controllerTickrate) % controllerTickrate
 			MPControllerGE.tick() -- Comment this line to disable controller synchronization
 		end
 	end
