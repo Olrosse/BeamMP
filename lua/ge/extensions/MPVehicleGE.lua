@@ -463,6 +463,9 @@ local function localVehiclesExist()
 end
 
 local vehicleSimplifiers = {
+	-- notes before diving into this shit hole
+	-- depending on the slot, parts.my_hopefully_exist_slot can be nil, breaking string.find(parts.my_hopefully_exist_slot, "_suffix")
+
 	common = function(vehicleConfig) -- this currently exist to fix wheels (TRIES TO) because simplified traffic have no (broken) default wheel
 		local parts = vehicleConfig.parts
 		
@@ -591,7 +594,7 @@ local vehicleSimplifiers = {
 		parts.simple_traffic_fullsize_bumper_R = parts.fullsize_bumper_R == "" and "" or nil
 		parts.simple_traffic_fullsize_hood = parts.fullsize_hood == "" and "" or nil
 		parts.simple_traffic_fullsize_trunk = parts.fullsize_trunk == "" and "" or nil
-		parts.skin_traffic_fullsize = string.find(parts.paint_design, "taxi") and "simple_traffic_fullsize_skin_taxi"
+		parts.skin_traffic_fullsize = string.find(parts.paint_design or "", "taxi") and "simple_traffic_fullsize_skin_taxi" -- CANT be nil
 		parts.simple_traffic_fullsize_extra = parts.fullsize_roof_accessory == "fullsize_adcarrier" and "simple_traffic_fullsize_extra_taxi"
 
 		vehicleConfig.model = newModel
@@ -607,8 +610,8 @@ local vehicleSimplifiers = {
 		parts.simple_traffic_lansdale_bumper_R = parts.lansdale_bumper_R == "" and "" or nil
 		parts.simple_traffic_lansdale_hood = parts.lansdale_hood == "" and "" or nil
 		parts.simple_traffic_lansdale_extra = parts.lansdale_roof_accessory == "lansdale_adcarrier" and "simple_traffic_lansdale_extra_taxi"
-		if isPre then
-			parts.skin_traffic_lansdale_pre = string.find(parts.paint_design, "taxi") and "simple_traffic_lansdale_skin_taxi"
+		if isPre then -- CANT be nil
+			parts.skin_traffic_lansdale_pre = string.find(parts.paint_design or "", "taxi") and "simple_traffic_lansdale_skin_taxi"
 		else
 		end
 
@@ -675,35 +678,42 @@ local vehicleSimplifiers = {
 			parts.simple_traffic_model = "simple_traffic_pickup_cargobox" -- boxtruck
 			parts.simple_traffic_pickup_bumper_F = parts.pickup_bumper_F == "" and "" or "simple_traffic_pickup_bumper_F" -- fix beamng skill issue
 
-		elseif string.find(parts.pickup_frame, "pickup_frame_crewlongbed") or -- ingores heavy suffix for crew longbed frames
-		string.find(parts.pickup_frame, "pickup_frame_extlongbed") then -- ingores heavy for ext longbed frames
-			parts.simple_traffic_model = "simple_traffic_pickup_crew" -- crew long bed
-
-		elseif string.find(parts.pickup_frame, "pickup_frame_crew") or -- ingores heavy for (the rest of) crew frames
-		string.find(parts.pickup_frame, "pickup_frame_ext") or -- ingores heavy for (the rest of) ext frames
-		string.find(parts.pickup_frame, "pickup_frame_longbed") or -- ingores heavy for longbed frames
-		parts.pickup_frame == "pickup_desert_frame_crew" or
-		parts.pickup_frame == "pickup_desert_frame_ext" or
-		string.find(parts.pickup_frame, "pickup_frame_short_ext") then -- ingores heavy for short ext frames
-			parts.simple_traffic_model = "simple_traffic_pickup_ext" -- ext normal bed
-
-		elseif string.find(parts.pickup_frame, "pickup_frame_short") then -- ingores heavy suffix for short frames
-			parts.simple_traffic_model = "simple_traffic_pickup_short" -- short frame
-
-		else -- standard frame, offroad frame lands here
+		elseif parts.pickup_frame then -- CANT be nil
 			parts.simple_traffic_model = "simple_traffic_pickup_single" -- reg normal bed
+
+			if string.find(parts.pickup_frame, "pickup_frame_crewlongbed") or -- ingores heavy suffix for crew longbed frames
+			string.find(parts.pickup_frame, "pickup_frame_extlongbed") then -- ingores heavy for ext longbed frames
+				parts.simple_traffic_model = "simple_traffic_pickup_crew" -- crew long bed
+
+			elseif string.find(parts.pickup_frame, "pickup_frame_crew") or -- ingores heavy for (the rest of) crew frames
+			string.find(parts.pickup_frame, "pickup_frame_ext") or -- ingores heavy for (the rest of) ext frames
+			string.find(parts.pickup_frame, "pickup_frame_longbed") or -- ingores heavy for longbed frames
+			parts.pickup_frame == "pickup_desert_frame_crew" or
+			parts.pickup_frame == "pickup_desert_frame_ext" or
+			string.find(parts.pickup_frame, "pickup_frame_short_ext") then -- ingores heavy for short ext frames
+				parts.simple_traffic_model = "simple_traffic_pickup_ext" -- ext normal bed
+
+			elseif string.find(parts.pickup_frame, "pickup_frame_short") then -- ingores heavy suffix for short frames
+				parts.simple_traffic_model = "simple_traffic_pickup_short" -- short frame
+			
+			-- the default state has been moved above
+			--else -- standard frame, offroad frame lands here
+			--	parts.simple_traffic_model = "simple_traffic_pickup_single" -- reg normal bed
+			end
 		end
 
 		if not isUpfit then
 			parts.simple_traffic_pickup_bumper_F = parts.pickup_bumper_F == "" and "" or nil
 			parts.simple_traffic_pickup_bumper_R = parts.pickup_bumper_R == "" and "" or nil
-			local version = string.find(parts.pickup_fascia, "pickup_fascia_prefacelift") and 1 or (string.find(parts.pickup_fascia, "pickup_fascia_facelift") and 3) or 2
-			if version == 1 then
-				parts.simple_traffic_pickup_version = not string.find(parts.pickup_fascia, "alt") and "simple_traffic_pickup_version_pre_chrome_alt" or "simple_traffic_pickup_version_pre_base"
-			elseif version == 2 then
-				parts.simple_traffic_pickup_version = "simple_traffic_pickup_version_pre_chrome"
-			elseif version == 3 then
-				parts.simple_traffic_pickup_version = not string.find(parts.pickup_fascia, "alt") and "simple_traffic_pickup_version_facelift_chrome" or "simple_traffic_pickup_version_facelift_base"
+			if parts.pickup_fascia then -- can be nil
+				local version = string.find(parts.pickup_fascia, "pickup_fascia_prefacelift") and 1 or (string.find(parts.pickup_fascia, "pickup_fascia_facelift") and 3) or 2
+				if version == 1 then
+					parts.simple_traffic_pickup_version = not string.find(parts.pickup_fascia, "alt") and "simple_traffic_pickup_version_pre_chrome_alt" or "simple_traffic_pickup_version_pre_base"
+				elseif version == 2 then
+					parts.simple_traffic_pickup_version = "simple_traffic_pickup_version_pre_chrome"
+				elseif version == 3 then
+					parts.simple_traffic_pickup_version = not string.find(parts.pickup_fascia, "alt") and "simple_traffic_pickup_version_facelift_chrome" or "simple_traffic_pickup_version_facelift_base"
+				end
 			end
 		end
 
@@ -714,7 +724,7 @@ local vehicleSimplifiers = {
 	roamer = function(vehicleConfig)
 		local parts = vehicleConfig.parts
 		local newModel = "simple_traffic"
-		local isExt = string.find(parts.roamer_frame, "roamer_frame_ext") ~= nil
+		local isExt = string.find(parts.roamer_frame or "", "roamer_frame_ext") ~= nil -- CANT be nil
 		local isLate = parts.roamer_radsupport == "roamer_radsupport_facelift"
 		parts.simple_traffic_model = isExt and "simple_traffic_roamer_ext" or "simple_traffic_roamer"
 		parts.simple_traffic_roamer_bumper_F = parts.roamer_bumper_F == "" and "" or nil
@@ -730,8 +740,12 @@ local vehicleSimplifiers = {
 		local parts = vehicleConfig.parts
 		local newModel = "simple_traffic"
 		local isUpfit = parts.van_frame == "van_frame_upfit_heavy"
-		local isLate = string.find(parts.van_facia_F, "_late") ~= nil
-		local isLux = string.find(parts.van_facia_F, "_high") or string.find(parts.van_facia_F, "_alt")
+		local isLate = false
+		local isLux = false
+		if parts.van_facia_F then -- can be nil
+			isLate = string.find(parts.van_facia_F, "_late") ~= nil
+			isLux = string.find(parts.van_facia_F, "_high") or string.find(parts.van_facia_F, "_alt")
+		end
 		parts.simple_traffic_model = isUpfit and "simple_traffic_van_boxtruck" or "simple_traffic_van"
 
 		if isLate then
@@ -749,11 +763,12 @@ local vehicleSimplifiers = {
 			parts.simple_traffic_van_bumper_R = parts.van_bumper_R == "" and "" or "simple_traffic_van_bumper_R" -- fix skill issue
 			parts.simple_traffic_van_hood = parts.van_hood == "" and "" or "simple_traffic_van_hood" -- fix skill issue
 
-			if string.find(parts.van_body or parts.van_body_ext, "van_body_passenger") then
+			 -- can be nil
+			if string.find(parts.van_body or parts.van_body_ext or "", "van_body_passenger") then
 				parts.simple_traffic_van_body = "simple_traffic_van_body_passenger"
-			elseif string.find(parts.van_body or parts.van_body_ext, "van_body_sidedoor") then
+			elseif string.find(parts.van_body or parts.van_body_ext or "", "van_body_sidedoor") then
 				parts.simple_traffic_van_body = "simple_traffic_van_body_cargodoor"
-			else -- van cab only also lands here
+			else -- "van cab only" also lands here
 				parts.simple_traffic_van_body = "simple_traffic_van_body_cargo"
 			end
 		end
