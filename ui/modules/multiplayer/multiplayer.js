@@ -335,30 +335,9 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 		document.getElementById('LoadingStatus').removeAttribute("hidden");
 	});
 
-	let isEA = false;
 
 	vm.showMessage = function() {
-		if (isEA)
-			ConfirmationDialog.open("ui.multiplayer.patreon.button.ea", "ui.multiplayer.patreon.popup.ea", [
-				{ label: "ui.inputActions.menu.menu_item_back.title", key: 0, isCancel: true },
-				{ label: "ui.multiplayer.patreon", key: 1 },
-				{ label: "Discord", key: 2 },
-				]
-			).then(res => {
-				if (res == 1)
-					openExternalLink("https://www.patreon.com/BeamMP");
-				else if (res == 2)
-					openExternalLink("https://discord.gg/beammp");
-		});
-		else 
-			ConfirmationDialog.open("ui.multiplayer.patreon.button.user", "ui.multiplayer.patreon.popup.user", [
-				{ label: "ui.inputActions.menu.menu_item_back.title", key: false, isCancel: true },
-				{ label: "ui.multiplayer.patreon", key: true, default: true },
-			]
-			).then(res => {
-				if (res)
-					openExternalLink("https://www.patreon.com/BeamMP");
-			});
+		openExternalLink("https://beammp.gg/patreonbenefits");
 	}
 
 	$scope.$on('authReceived', function (event, data) {
@@ -368,23 +347,21 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 
 		if (Object.keys(data).length > 1) {
 			let patreonText = $filter('translate')('ui.multiplayer.patreon.message.user')
-			let buttonText = $filter('translate')('ui.multiplayer.patreon.button.user')
-
-			let buttonColor = "var(--bng-orange)"
 
 			let banner = document.getElementById("topRightStatus")
 
 			if (data.role == "EA") {
 				patreonText = $filter('translate')('ui.multiplayer.patreon.message.ea')
-				buttonText = $filter('translate')('ui.multiplayer.patreon.button.ea')
-				buttonColor = "rgba(193, 139, 255, 1)"
-				isEA = true;
-			} else
-				isEA = false;
+				banner.children[0].style.display = "none"
+				banner.style.color = "#fe8cff";
+			} else {
+				banner.children[0].style.display = ""
+				banner.style.color = "white";
+			}
 
 			banner.firstChild.nodeValue = patreonText
-			banner.children[0].style.color = buttonColor
-			banner.children[0].children[0].innerText = buttonText
+			banner.children[0].style.color = "var(--bng-orange)"
+			banner.children[0].children[0].innerText = $filter('translate')('ui.multiplayer.patreon.button.user')
 
 			if (data.color != null)
 				nameElement.style.backgroundColor = data.color
@@ -395,6 +372,7 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 			avatarElement.src = data.avatar;
 
 			if (data.id != null) {
+				nameElement.style.cursor = "pointer";
 				nameElement.onclick = function() {
 					openExternalLink("https://forum.beammp.com/u/" + data.username + "/summary");
 				}
@@ -407,6 +385,7 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 			} else {
 				idElement.textContent = "";
 				nameElement.onclick = null;
+				nameElement.style.cursor = "default";
 			}
 		} else {
 			nameElement.textContent = "";

@@ -155,7 +155,7 @@
     "ui.multiplayer.configprotection.clone.message": "Sorry, you cannot clone this vehicle.",
     "ui.multiplayer.configprotection.save.title": "Vehicle Save Error",
     "ui.multiplayer.configprotection.save.message": "Sorry, you cannot save this vehicle.",
-    "ui.multiplayer.patreon.message.user": "Enjoying BeamMP? Consider helping to support our work on Patreon",
+    "ui.multiplayer.patreon.message.user": "Enjoying BeamMP? Consider supporting our work on Patreon!",
     "ui.multiplayer.patreon.button.user": "Read more",
     "ui.multiplayer.patreon.message.ea": "Thank you for supporting BeamMP!",
     "ui.multiplayer.patreon.button.ea": "Perks",
