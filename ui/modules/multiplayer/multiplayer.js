@@ -395,11 +395,18 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 			avatarElement.src = data.avatar;
 
 			if (data.id != null) {
+				nameElement.onclick = function() {
+					openExternalLink("https://forum.beammp.com/u/" + data.username + "/summary");
+				}
+	
 				idElement.textContent = "ID: " + data.id
 				idElement.onclick = function() {
 					bngApi.engineLua(`setClipboard("`+data.id+`")`);
 					toastr.info("Copied ID to clipboard")
 				}
+			} else {
+				idElement.textContent = "";
+				nameElement.onclick = null;
 			}
 		} else {
 			nameElement.textContent = "";
