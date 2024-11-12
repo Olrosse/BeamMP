@@ -112,6 +112,7 @@
     "ui.multiplayer.docs": "Docs",
     "ui.multiplayer.discord": "Discord",    
     "ui.multiplayer.patreon": "Patreon",
+    "ui.multiplayer.github": "GitHub",
     "ui.multiplayer.players": "Players",
     "ui.multiplayer.emptyOnly": "Empty only",
     "ui.multiplayer.emptyOnlyTooltip": "Only show empty servers",
@@ -154,5 +155,11 @@
     "ui.multiplayer.configprotection.clone.title": "Vehicle Clone Error",
     "ui.multiplayer.configprotection.clone.message": "Sorry, you cannot clone this vehicle.",
     "ui.multiplayer.configprotection.save.title": "Vehicle Save Error",
-    "ui.multiplayer.configprotection.save.message": "Sorry, you cannot save this vehicle."
+    "ui.multiplayer.configprotection.save.message": "Sorry, you cannot save this vehicle.",
+    "ui.multiplayer.patreon.message.user": "Enjoying BeamMP? Consider supporting our work on Patreon!",
+    "ui.multiplayer.patreon.button.user": "Read more",
+    "ui.multiplayer.patreon.message.ea": "Thank you for supporting BeamMP!",
+    "ui.multiplayer.patreon.button.ea": "Perks",
+    "ui.multiplayer.patreon.popup.user": "Support BeamMP on Patreon",
+    "ui.multiplayer.patreon.popup.ea": "Thank you for supporting BeamMP!"
 }

@@ -54,6 +54,10 @@ local roleToInfo = {
 	['NGAFFIL']	= { backcolor = { r = 252, g = 107, b = 003 }, forecolor = { r = 252, g = 107, b = 003 }, tag = " [BeamNG Affiliate]", shorttag = " [BNG]" }
 }
 
+local function getRoleInfoTable()
+	return roleToInfo
+end
+
 --- (in table) Specifies the table in roleToInfo
 -- @table roleToInfo_subtable
 -- @tfield ColorI backcolor Contains RGBA Values wiki.beamng.com/Lua:Reference#ColorI
@@ -1083,7 +1087,8 @@ local function sendVehicleSpawn(gameVehicleID)
 		--local vehObj = Vehicle:new({ isLocal=true, ownerName=MPConfig.getNickname(), gameVehicleID=gameVehicleID, jbeam=vehicleTable.jbm, ownerID=vehicleTable.pid })
 
 		if not players[vehicleTable.pid] or players[vehicleTable.pid].name ~= MPConfig.getNickname() then
-			players[vehicleTable.pid] = Player:new({name=MPConfig.getNickname(), playerID=vehicleTable.pid, isLocal=true })
+			local role = MPCoreNetwork.getAuthResult().role
+			players[vehicleTable.pid] = Player:new({name=MPConfig.getNickname(), playerID=vehicleTable.pid, isLocal=true, role=role })
 		end
 
 		--vehicles[gameVehicleID] = vehObj
@@ -2537,6 +2542,7 @@ M.queryRoadNodeToPosition  = queryRoadNodeToPosition  -- takes: vec3 target posi
 M.sendVehicleEdit          = sendVehicleEdit          -- UI 'Sync' button
 M.onVehicleReady           = onVehicleReady           -- Called when our VE files load and the vehicle is ready
 M.onSettingsChanged        = onSettingsChanged        -- takes: -
+M.getRoleInfoTable         = getRoleInfoTable
 M.onInit = function() setExtensionUnloadMode(M, "manual") end
 
 local function depricationWarning(oldFnName, replacementName)

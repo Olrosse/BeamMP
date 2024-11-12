@@ -335,6 +335,65 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 		document.getElementById('LoadingStatus').removeAttribute("hidden");
 	});
 
+
+	vm.showMessage = function() {
+		openExternalLink("https://beammp.gg/patreonbenefits");
+	}
+
+	$scope.$on('authReceived', function (event, data) {
+		let nameElement = document.getElementById("serverlist-profile-name")
+		let idElement = document.getElementById("serverlist-profile-id")
+		let avatarElement = document.getElementById("serverlist-profile-avatar")
+
+		if (Object.keys(data).length > 1) {
+			let patreonText = $filter('translate')('ui.multiplayer.patreon.message.user')
+
+			let banner = document.getElementById("topRightStatus")
+
+			if (data.role == "EA") {
+				patreonText = $filter('translate')('ui.multiplayer.patreon.message.ea')
+				banner.children[0].style.display = "none"
+				banner.style.color = "#fe8cff";
+			} else {
+				banner.children[0].style.display = ""
+				banner.style.color = "white";
+			}
+
+			banner.firstChild.nodeValue = patreonText
+			banner.children[0].style.color = "var(--bng-orange)"
+			banner.children[0].children[0].innerText = $filter('translate')('ui.multiplayer.patreon.button.user')
+
+			if (data.color != null)
+				nameElement.style.backgroundColor = data.color
+			else
+				nameElement.style.backgroundColor = "rgba(0, 0, 0, 0)"
+
+			nameElement.textContent = data.username;
+			avatarElement.src = data.avatar;
+
+			if (data.id != null) {
+				nameElement.style.cursor = "pointer";
+				nameElement.onclick = function() {
+					openExternalLink("https://forum.beammp.com/u/" + data.username + "/summary");
+				}
+	
+				idElement.textContent = "ID: " + data.id
+				idElement.onclick = function() {
+					bngApi.engineLua(`setClipboard("`+data.id+`")`);
+					toastr.info("Copied ID to clipboard")
+				}
+			} else {
+				idElement.textContent = "";
+				nameElement.onclick = null;
+				nameElement.style.cursor = "default";
+			}
+		} else {
+			nameElement.textContent = "";
+			idElement.textContent = "";
+			avatarElement.removeAttribute("src");
+		}
+	});
+
 	vm.exit = function ($event) {
 		if ($event)
 		console.log('[MultiplayerController] exiting by keypress event %o', $event);

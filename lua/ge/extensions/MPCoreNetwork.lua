@@ -16,8 +16,11 @@ local M = {}
 -- launcher
 local TCPLauncherSocket = nop -- Launcher socket
 local socket = require('socket')
+local http = require("socket.http")
+local ltn12 = require("ltn12")
 local launcherConnected = false
 local isConnecting = false
+local proxyPort = ""
 local launcherVersion = "" -- used only for the server list
 local modVersion = "4.13.9" -- the mod version
 -- server
@@ -31,6 +34,7 @@ local status = "" -- "", "waitingForResources", "LoadingResources", "LoadingMap"
 -- auth
 
 local loggedIn = false
+local authResult = {}
 
 -- event functions
 
@@ -85,6 +89,8 @@ local function send(s)
 			log('W', 'send', 'Lost launcher connection!')
 			if launcherConnected then guihooks.trigger('LauncherConnectionLost') end
 			launcherConnected = false
+			authResult = {}
+			guihooks.trigger("authReceived", authResult)
 		elseif error == "Socket is not connected" then
 
 		else
@@ -197,6 +203,8 @@ local function logout()
 	log('M', 'logout', 'Attempting logout')
 	send('N:LO')
 	loggedIn = false
+	authResult = {}
+	guihooks.trigger("authReceived", authResult)
 end
 
 --- Sends the current player and server count plus the mod and launcher version to the CEF UI.
@@ -376,6 +384,18 @@ end
 
 -- VV============= OTHERS =============VV
 
+--- Handles the storing of the port received from the launcher that is where the http proxy is located on.
+-- @param port number the port number received from the launcher.
+local function setProxyPort(port)
+	log('M', 'setProxyPort', 'HTTP Proxy Port Received: ' .. port)
+	proxyPort = port
+end
+
+--- Handles the returning of the port received from the launcher that is where the http proxy is located on.
+local function getProxyPort()
+	return proxyPort
+end
+
 --- Handles the login result received from the launcher.
 -- @param params string The JSON-encoded login results.
 local function loginReceived(params)
@@ -390,8 +410,32 @@ local function loginReceived(params)
 		loggedIn = false
 		guihooks.trigger('LoginError', result.message or '')
 	end
+
+	authResult = result
+	if authResult.username then
+		local res = {}; 
+		local r, code, headers = http.request{
+			url = "http://localhost:".. proxyPort .."/avatar/"..authResult.username, 
+			sink = ltn12.sink.table(res)
+		}; 
+
+		if code == 200 then 
+			authResult.avatar = "data:" .. (headers["content-type"]) .. ";base64," .. MPHelpers.b64encode(table.concat(res))
+		end
+
+		if authResult.role and authResult.role ~= "USER" then
+			local roleColor = MPVehicleGE.getRoleInfoTable()[authResult.role].backcolor
+			authResult.color = "rgba(" .. roleColor.r .. "," .. roleColor.g .. "," .. roleColor.b .. "," .. (roleColor.a or 127)/255 .. ")"
+		end
+	end
+
+	guihooks.trigger('authReceived', authResult)
 end
 
+--- Returns the result from authentication, which includes the user's name, beammp id and role
+local function getAuthResult()
+	return authResult
+end
 
 --- Leaves the server and performs necessary cleanup.
 -- @param goBack boolean Whether to go back to the previous screen after leaving the server.
@@ -516,6 +560,7 @@ local HandleNetwork = {
 	['L'] = function(params) setMods(params) status = "LoadingResources" end, --received after sending 'C' packet
 	['M'] = function(params) log('W', 'HandleNetwork', 'Received Map! '..params) loadLevel(params) end,
 	['N'] = function(params) loginReceived(params) end,
+	['P'] = function(params) setProxyPort(params) end,
 	['U'] = function(params) handleU(params) end, -- Loading into server UI, handles loading mods, pre-join kick messages and ping
 	['W'] = function(params) handleModWarning(params) end,
 	['Z'] = function(params) launcherVersion = params; end,
@@ -609,6 +654,7 @@ onLauncherConnected = function()
 	reconnectAttempt = 0
 	log('W', 'onLauncherConnected', 'onLauncherConnected')
 	send('Z') -- request launcher version
+	send('P') -- request launcher proxy port
 	requestServerList()
 	extensions.hook('onLauncherConnected')
 	guihooks.trigger('onLauncherConnected')
@@ -664,6 +710,9 @@ local function onUiChangedState (curUIState, prevUIState)
 	if curUIState == 'menu' and getMissionFilename() == "" then -- required due to game bug that happens if UI is reloaded on the main menu
 		guihooks.trigger('ChangeState', 'menu.mainmenu')
 	end
+	if (curUIState == 'menu.multiplayer.servers') then
+		guihooks.trigger('authReceived', authResult)
+	end
 end
 
 --- Serializes data for saving to be loaded on lua reload. Allows for lua state memory persistence between reloads
@@ -707,6 +756,7 @@ M.connectToLauncher    = connectToLauncher
 M.disconnectLauncher   = disconnectLauncher
 M.isLauncherConnected  = isLauncherConnected
 M.getLauncherVersion   = getLauncherVersion
+M.getProxyPort         = getProxyPort
 -- security
 M.rejectModDownload    = rejectModDownload
 M.approveModDownload   = approveModDownload
@@ -715,6 +765,7 @@ M.login                = login
 M.autoLogin            = autoLogin
 M.logout               = logout
 M.isLoggedIn           = isLoggedIn
+M.getAuthResult        = getAuthResult
 -- events
 M.onUiChangedState     = onUiChangedState
 M.onExtensionLoaded    = onExtensionLoaded
