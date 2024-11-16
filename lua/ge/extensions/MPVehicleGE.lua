@@ -1061,7 +1061,7 @@ local function sendVehicleSpawn(gameVehicleID)
 		local vehicleTable = {}
 		local vehicleData  = extensions.core_vehicle_manager.getVehicleData(gameVehicleID)
 		local pos          = veh:getPosition()
-		local rot          = quatFromDir(-vec3(veh:getDirectionVector()), vec3(veh:getDirectionVectorUp()))
+		local rot          = quat(veh:getRotation()) -- getRotation is the only correct one on spawn, but doesn't update so direction vectors are needed in other places
 
 		vehicleTable.pid = MPConfig.getPlayerServerID() -- Player Server ID
 		vehicleTable.vid = gameVehicleID -- Game Vehicle ID
@@ -1190,7 +1190,7 @@ local function applyVehSpawn(event)
 	local vehicleName    = decodedData.jbm -- Vehicle name
 	local vehicleConfig  = decodedData.vcf -- Vehicle config, contains paint data
 	local pos            = vec3(decodedData.pos)
-	local rot            = decodedData.rot.w and quat(decodedData.rot) or quat(0,0,0,0) --ensure the rotation data is good
+	local rot            = quat(0,0,1,0) * quat(decodedData.rot) -- the car rotates 180 degrees on spawn so we need to counter that
 	local ignitionLevel  = (type(decodedData.ign) == "number") and decodedData.ign or 3
 	local protected      = decodedData.pro -- Config Protected
 
@@ -1291,7 +1291,7 @@ local function applyVehEdit(serverID, data)
 		local options = {
 			model = vehicleName,
 			config = serialize(vehicleConfig),
-			pos = veh:getPosition(), rot = quatFromDir(-vec3(veh:getDirectionVector()), vec3(veh:getDirectionVectorUp())), cling = true,
+			pos = veh:getPosition(), rot = quat(0,0,1,0) *  quatFromDir(-vec3(veh:getDirectionVector()), vec3(veh:getDirectionVectorUp())), cling = true,
 		}
 
 		veh:setDynDataFieldbyName("autoEnterVehicle", 0, tostring((be:getPlayerVehicle(0) and be:getPlayerVehicle(0):getID() == gameVehicleID) or false))
