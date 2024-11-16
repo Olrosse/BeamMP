@@ -1194,6 +1194,12 @@ local function applyVehSpawn(event)
 	local ignitionLevel  = (type(decodedData.ign) == "number") and decodedData.ign or 3
 	local protected      = decodedData.pro -- Config Protected
 
+	local vehicle = vehicles[event.serverVehicleID]
+	if vehicle and vehicle.position and vehicle.rotation then -- if we have receieved position packets then use that for position and rotation instead
+		pos = vec3(vehicle.position)
+		rot = quat(0,0,1,0) * quat(vehicle.rotation) -- the car rotates 180 degrees on spawn so we need to counter that
+	end
+
 	log('I', 'applyVehSpawn', "Spawning a vehicle from server with serverVehicleID "..event.serverVehicleID)
 	log('I', 'applyVehSpawn', "It is for "..event.playerNickname)
 
