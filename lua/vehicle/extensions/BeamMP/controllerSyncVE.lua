@@ -195,6 +195,7 @@ local function applyLastState()
 end
 
 local function getControllerData()
+	extensions.hook("getBeamMPControllerData")
 	if not cachedData then return end
 	for controllerName, functions in pairs(cachedData) do
 		for functionName , functionData in pairs(functions) do
