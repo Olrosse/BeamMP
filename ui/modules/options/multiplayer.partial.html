@@ -264,14 +264,14 @@
   <md-list-item layout class="md-padding" style="padding-top:0; padding-bottom:0">
     <md-tooltip md-direction="right">{{:: 'ui.options.multiplayer.nametagFadeDistance.tooltip' | translate }}
     </md-tooltip>
-    <p flex="30">{{:: 'ui.options.multiplayer.nametagFadeDistance' | translate }}</p>
+    <p flex="30">{{:: 'ui.options.multiplayer.nametagFadeDistance' | translate }} ({{:: 'ui.unit.m' | translate }})</p>
     <md-slider flex ng-model="options.data.values.nameTagFadeDistance" min="0" max="1500" step="1" aria-label="_"
       ng-change="options.applyState()">
     </md-slider>
-    <span ng-if="options.data.values.uiUnitLength == 'imperial'" style="margin-left:15px">{{
-      (options.data.values.nameTagFadeDistance*3.281).toFixed(0) }} feet</span>
-    <span ng-if="options.data.values.uiUnitLength != 'imperial'" style="margin-left:15px">{{
-      (options.data.values.nameTagFadeDistance).toFixed(0) }} {{:: 'ui.unit.m' | translate }}</span>
+    <span style="margin-left:15px">
+      <input flex type="number" min="0" step="1" ng-value="options.data.values.nameTagFadeDistance" ng-model="options.data.values.nameTagFadeDistance" ng-change="options.applyState()" style="width:60px">
+      ({{(options.data.values.nameTagFadeDistance*3.28084).toFixed(0) }} feet)
+    </span>
   </md-list-item>
   <md-list-item md-no-ink>
     <p>{{:: 'ui.options.multiplayer.nametagInvertFade' | translate }}</p>
