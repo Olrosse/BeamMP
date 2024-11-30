@@ -2543,6 +2543,7 @@ M.sendVehicleEdit          = sendVehicleEdit          -- UI 'Sync' button
 M.onVehicleReady           = onVehicleReady           -- Called when our VE files load and the vehicle is ready
 M.onSettingsChanged        = onSettingsChanged        -- takes: -
 M.getRoleInfoTable         = getRoleInfoTable
+M.sendPendingVehicleEdits  = sendPendingVehicleEdits  -- takes: -
 M.onInit = function() setExtensionUnloadMode(M, "manual") end
 
 local function depricationWarning(oldFnName, replacementName)
