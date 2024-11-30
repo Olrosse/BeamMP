@@ -1,6 +1,8 @@
 {
   "ui.playmodes.multiplayer": "Çok Oyunculu",
   "ui.options.multiplayer": "Çok Oyunculu",
+  "ui.options.multiplayer.protectConfigFromClone": "Araç Klonlama Korumasını Etkinleştir",
+  "ui.options.multiplayer.protectConfigFromClone.tooltip": "Bu aracı diğer oyuncular tarafından klonlanmaya karşı koruyun.",
   "ui.options.multiplayer.enableNewChatMenu": "Yeni sohbet menüsü",
   "ui.options.multiplayer.enableNewChatMenu.tooltip": "Yeni sohbet menüsü ImGui kullanıyor. Özelleştirilebilir, şık ve harika!",
   "ui.options.multiplayer.enablePosSmoother": "Araç pozisyonu düzeltmeyi etkinleştir",
@@ -110,6 +112,7 @@
   "ui.multiplayer.docs": "Belgeler",
   "ui.multiplayer.discord": "Discord",
   "ui.multiplayer.patreon": "Patreon",
+  "ui.multiplayer.github": "GitHub",
   "ui.multiplayer.players": "Oyuncular",
   "ui.multiplayer.emptyOnly": "Sadece boş",
   "ui.multiplayer.emptyOnlyTooltip": "Sadece boş suncuları göster",
@@ -148,5 +151,15 @@
   "ui.multiplayer.security.no_return": "İptal & Geri Dön",
   "ui.multiplayer.security.accept_proceed": "İndir ve Katıl",
   "ui.multiplayer.security.title": "Sunucu Modları Algılandı",
-  "ui.multiplayer.security.prompt": "Katıldığınız sunucuda otomatik olarak indirilen ve yüklenen modlar vardır. Bu modlar bilgisayarınızda çalışacak kodlar içerebilir ve kötü amaçlı olabilir. Lütfen devam etmeden önce sunucu sahiplerine güvendiğinizden emin olun. Modların kötü amaçlı olmadığına güveniyorsanız, kendi sorumluluğunuzda devam edebilirsiniz. BeamMP bu sunucudan indirilen hiçbir içerikten sorumlu değildir. Bu uyarı ayarlardan devre dışı bırakılabilir."
+  "ui.multiplayer.security.prompt": "Katıldığınız sunucuda otomatik olarak indirilen ve yüklenen modlar vardır. Bu modlar bilgisayarınızda çalışacak kodlar içerebilir ve kötü amaçlı olabilir. Lütfen devam etmeden önce sunucu sahiplerine güvendiğinizden emin olun. Modların kötü amaçlı olmadığına güveniyorsanız, kendi sorumluluğunuzda devam edebilirsiniz. BeamMP bu sunucudan indirilen hiçbir içerikten sorumlu değildir. Bu uyarı ayarlardan devre dışı bırakılabilir.",
+  "ui.multiplayer.configprotection.clone.title": "Araç Klonlama Hatası",
+  "ui.multiplayer.configprotection.clone.message": "Üzgünüm, bu aracı klonlayamazsınız.",
+  "ui.multiplayer.configprotection.save.title": "Araç Kaydetme Hatası",
+  "ui.multiplayer.configprotection.save.message": "Üzgünüm, bu aracı kaydedemezsiniz.",
+  "ui.multiplayer.patreon.message.user": "BeamMP'yi beğeniyor musunuz? Patreon'da çalışmalarımızı desteklemeyi düşünün!",
+  "ui.multiplayer.patreon.button.user": "Daha fazla",
+  "ui.multiplayer.patreon.message.ea": "BeamMP'yi desteklediğiniz için teşekkür ederiz!",
+  "ui.multiplayer.patreon.button.ea": "Avantajlar",
+  "ui.multiplayer.patreon.popup.user": "Patreon'da BeamMP'yi destekleyin",
+  "ui.multiplayer.patreon.popup.ea": "BeamMP'yi desteklediğiniz için teşekkür ederiz!"
 }
