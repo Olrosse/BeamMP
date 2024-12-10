@@ -498,8 +498,8 @@ angular
           backState: "BACK_TO_MENU",
         })
 
-        .state("menu.vehicleconfig", {
-          url: "/vehicle-config",
+        .state("menu.vehicleconfigold", {
+          url: "/vehicle-config-old",
           templateUrl: "/ui/modules/vehicleconfig/vehicleconfig.html",
           controller: "VehicleconfigCtrl",
           redirectTo: "menu.vehicleconfig.parts",
@@ -508,8 +508,8 @@ angular
             return "BACK_TO_MENU"
           },
         })
-        .state("menu.vehicleconfig.parts", {
-          url: "/vehicle-config/parts",
+        .state("menu.vehicleconfigold.parts", {
+          url: "/vehicle-config-old/parts",
           templateUrl: "/ui/modules/vehicleconfig/partial.parts.html",
           controller: "Vehicleconfig_parts as vehConf_parts",
           backState($scope, $state, $stateParams) {
@@ -518,8 +518,8 @@ angular
           },
           uiAppsShown: true, // defaults to false
         })
-        .state("menu.vehicleconfig.tuning", {
-          url: "/vehicle-config/tuning",
+        .state("menu.vehicleconfigold.tuning", {
+          url: "/vehicle-config-old/tuning",
           templateUrl: "/ui/modules/vehicleconfig/partial.tuning.html",
           controller: "Vehicleconfig_tuning as vehConf_tuning",
           backState($scope, $state, $stateParams) {
@@ -528,8 +528,8 @@ angular
           },
           uiAppsShown: true, // defaults to false
         })
-        .state("menu.vehicleconfig.color", {
-          url: "/vehicle-config/color",
+        .state("menu.vehicleconfigold.color", {
+          url: "/vehicle-config-old/color",
           templateUrl: "/ui/modules/vehicleconfig/partial.color.html",
           controller: "Vehicleconfig_color as vehConf_color",
           backState($scope, $state, $stateParams) {
@@ -537,8 +537,8 @@ angular
             return "BACK_TO_MENU"
           },
         })
-        .state("menu.vehicleconfig.save", {
-          url: "/vehicle-config/save",
+        .state("menu.vehicleconfigold.save", {
+          url: "/vehicle-config-old/save",
           templateUrl: "/ui/modules/vehicleconfig/partial.save.html",
           controller: "Vehicleconfig_save as vehConf_save",
           backState($scope, $state, $stateParams) {
@@ -546,8 +546,8 @@ angular
             return "BACK_TO_MENU"
           },
         })
-        .state("menu.vehicleconfig.debug", {
-          url: "/vehicle-config/debug",
+        .state("menu.vehicleconfigold.debug", {
+          url: "/vehicle-config-old/debug",
           templateUrl: "/ui/modules/vehicleconfig/debug.partial.html",
           controller: "Vehicleconfig_debug as vehConf_debug",
           backState($scope, $state, $stateParams) {
