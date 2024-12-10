@@ -12,7 +12,106 @@ var recents = [];
 var mdDialog;
 var mdDialogVisible = false;
 
-angular.module('beamng.stuff')
+export default angular.module('multiplayer', ['ui.router'])
+
+.config(['$stateProvider', function($stateProvider) {
+  $stateProvider.state('menu.multiplayer', {
+		url: '/multiplayer',
+		templateUrl: '/ui/modModules/multiplayer/multiplayer.html',
+		controller: 'MultiplayerController as multiplayer',
+		backState: 'BACK_TO_MENU',
+		abstract: true
+	})
+	.state('menu.multiplayer.tos', {
+		url: '/mptos',
+		templateUrl: '/ui/modModules/multiplayer/tos.partial.html',
+		controller: 'MultiplayerTOSController as multiplayertos',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.launcher', {
+		url: '/mplauncher',
+		templateUrl: '/ui/modModules/multiplayer/launcher.partial.html',
+		controller: 'MultiplayerLauncherController as multiplayerlauncher',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.login', {
+		url: '/mplogin',
+		templateUrl: '/ui/modModules/multiplayer/login.partial.html',
+		controller: 'MultiplayerLoginController as multiplayerlogin',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.servers', {
+		url: '/mpservers',
+		templateUrl: '/ui/modModules/multiplayer/servers.partial.html',
+		controller: 'MultiplayerServersController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.official', {
+		url: '/mpofficial',
+		templateUrl: '/ui/modModules/multiplayer/official.partial.html',
+		controller: 'MultiplayerOfficialController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.featured', {
+		url: '/mpfeatured',
+		templateUrl: '/ui/modModules/multiplayer/featured.partial.html',
+		controller: 'MultiplayerFeaturedController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.partner', {
+		url: '/mppartner',
+		templateUrl: '/ui/modModules/multiplayer/partner.partial.html',
+		controller: 'MultiplayerPartnerController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.recent', {
+		url: '/mprecent',
+		templateUrl: '/ui/modModules/multiplayer/recent.partial.html',
+		controller: 'MultiplayerRecentController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.favorites', {
+		url: '/mpfavorites',
+		templateUrl: '/ui/modModules/multiplayer/favorites.partial.html',
+		controller: 'MultiplayerFavoritesController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.multiplayer.direct', {
+		url: '/mpdirect',
+		templateUrl: '/ui/modModules/multiplayer/direct.partial.html',
+		controller: 'MultiplayerDirectController as multiplayermenu',
+		backState: 'BACK_TO_MENU'
+	})
+	.state('menu.options.multiplayer', {
+		url: '/multiplayer',
+		templateUrl: '/ui/modModules/options/multiplayer.partial.html',
+		backState: 'BACK_TO_MENU',
+	})
+
+}])
+
+.run(['$rootScope', function ($rootScope) {
+  $rootScope.$on('MainMenuButtons', function (event, addButton) {
+    addButton({
+      translateid: 'ui.playmodes.multiplayer',
+      icon: '/ui/modModules/multiplayer/icons/account-multiple.svg',
+      targetState: 'menu.multiplayer.tos'
+    })
+  })
+
+	// Check for server to join
+	$rootScope.$on('AutoJoinConfirmation', function(evt, data) {
+		console.log('AutoJoinConfirmation',evt,data)
+		var d = JSON.parse(decodeURI(data.message))
+		confirmationMessage = `Do you want to connect to the server at ${d.ip}:${d.port}?`
+		userConfirmed = window.confirm(confirmationMessage); 
+		//userConfirmed ? alert('Connecting to the server...') : alert('Connection canceled.');
+		if (userConfirmed) {
+			bngApi.engineLua(`MPCoreNetwork.connectToServer("${d.ip}","${d.port}","${d.sname}")`);
+		}
+	})
+}])
+
 /* //////////////////////////////////////////////////////////////////////////////////////////////
 *	TOS CONTROLLER
 */ //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1137,9 +1236,9 @@ function formatServerName(string) {
 function officialMark(o, s) {
 	if (o) {
 		if (s) {
-			return '<img src="local://local/ui/modules/multiplayer/beammp.png" alt="" style="height: 23px; padding-right: 10px;"> [Official Server]  '
+			return '<img src="local://local/ui/modModules/multiplayer/beammp.png" alt="" style="height: 23px; padding-right: 10px;"> [Official Server]  '
 		} else {
-			return '<img src="local://local/ui/modules/multiplayer/beammp.png" alt="" style="height: 21px; padding-right: 10px; padding-left: 10px; position: absolute;">'
+			return '<img src="local://local/ui/modModules/multiplayer/beammp.png" alt="" style="height: 21px; padding-right: 10px; padding-left: 10px; position: absolute;">'
 		}
 
 	} else {
@@ -1383,7 +1482,7 @@ function createRow(table, server, bgcolor, bngApi, isFavorite, isRecent, sname) 
 		<td style="background-color:${bgcolor}; font-size: initial;">${server.players}/${server.maxplayers}</td>
 	`;*/
 	newRow.innerHTML = `
-		<td style="background-color:${bgcolor}; font-size: initial; padding-left: 3px; text-align: right; padding-right: 10px;"><img src="local://local/ui/modules/multiplayer/flags/${server.location.toLowerCase()}.png" class="flag"></img> ${server.location}</td>
+		<td style="background-color:${bgcolor}; font-size: initial; padding-left: 3px; text-align: right; padding-right: 10px;"><img src="local://local/ui/modModules/multiplayer/flags/${server.location.toLowerCase()}.png" class="flag"></img> ${server.location}</td>
 		<td style="background-color:${bgcolor};">${formatServerName(sname)}</td>
 		<td style="background-color:${bgcolor}; font-size: initial;">${SmoothMapName(server.map)}</td>
 		<td style="background-color:${bgcolor}; font-size: initial;">${server.players}/${server.maxplayers}</td>
