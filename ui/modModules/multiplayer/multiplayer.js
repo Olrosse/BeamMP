@@ -1143,10 +1143,10 @@ function formatDescriptionName(string) {
         indexes = [],
         apply = [],
         tmpStr,
-        deltaIndex,
-        noCode,
+        indexDelta,
         final = document.createDocumentFragment(),
-        i;
+        i,
+        len;
     for(i = 0, len = codes.length; i < len; i++) {
         indexes.push( string.indexOf(codes[i]) );
         string = string.replace(codes[i], '\x00\x00');
@@ -1691,7 +1691,7 @@ function sortTable(sortType, isNumber, dir) {
 
 function setServersTableHeight() {
 	let topDistance = document.getElementById("serversTableContainer").getBoundingClientRect().top;
-	let navBarHeight = document.querySelector(".navbar").getBoundingClientRect().top;
+	let navBarHeight = document.querySelector("#vue-app > div.vue-app-main.click-through > div").getBoundingClientRect().top;
 	document.getElementById("serversTableContainer").style.maxHeight = (window.innerHeight - topDistance - (window.innerHeight - navBarHeight)) + 'px';
 }
 
