@@ -84,7 +84,7 @@ export default angular.module('multiplayer', ['ui.router'])
 	})
 	.state('menu.options.multiplayer', {
 		url: '/multiplayer',
-		templateUrl: '/ui/modModules/options/multiplayer.partial.html',
+		templateUrl: '/ui/modules/options/multiplayer.partial.html',
 		backState: 'BACK_TO_MENU',
 	})
 
