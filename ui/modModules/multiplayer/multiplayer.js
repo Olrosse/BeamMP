@@ -158,34 +158,16 @@ export default angular.module('multiplayer', ['ui.router'])
 }
 	</style>
 	<div class="beammp-info-bar">
+		<img src="/ui/modModules/multiplayer/beammp.png" style="margin: 0px 8px;" height="32px">
 		<img src="/ui/modModules/multiplayer/icons/account-multiple.svg" style="padding: 5px" height="22px">
 		<span style="padding-left: 5px; padding-right: 10px;">Players: <strong id="beammpMetricsPlayers">${ beammpMetrics.beammp_players_online }</strong> </span>
 		<img src="/ui/modModules/multiplayer/icons/dns.svg" style="padding: 5px" height="22px">
 		<span style="padding-left: 5px;">Servers: <strong id="beammpMetricsServers">${ beammpMetrics.beammp_public_servers }</strong> </span>
-		<span class="divider"></span>
+		<span class="divider" id="beammp-profile-divider"></span>
 		<img src="${userData.avatar}" id="beammp-profile-avatar" style="padding: 5px" height="22px">
 		<span><strong id="beammp-profile-name">${userData.username}</strong> </span>
 	</div>
 	`
-
-	$rootScope.$on('authReceived', function (event, data) {
-		//console.log('authReceived', data)
-		let nameElement = document.getElementById("beammp-profile-name")
-		let avatarElement = document.getElementById("beammp-profile-avatar")
-
-		if (nameElement && avatarElement) {
-			userData = {
-				username: data.username,
-				avatar: data.avatar,
-				role: data.role,
-				color: data.color,
-				id: data.id
-			}
-		}
-
-		nameElement.textContent = data.username;
-		avatarElement.src = data.avatar;
-	})
 
 	$rootScope.$on('beammpInfo', function (event, data) {
 		//console.log(`beammpInfo`, data)
@@ -212,21 +194,31 @@ export default angular.module('multiplayer', ['ui.router'])
 
 	$rootScope.$on('authReceived', function (event, data) {
 		console.log('authReceived', data)
-		let nameElement = document.getElementById("beammp-profile-name")
-		let avatarElement = document.getElementById("beammp-profile-avatar")
+		if (data.avatar == undefined) {
+			document.getElementById("beammp-profile-divider").style.display = 'none'
+			document.getElementById("beammp-profile-name").style.display = 'none'
+			document.getElementById("beammp-profile-avatar").style.display = 'none'
+		} else {
+			document.getElementById("beammp-profile-divider").style.display = 'block'
+			let nameElement = document.getElementById("beammp-profile-name")
+			let avatarElement = document.getElementById("beammp-profile-avatar")
 
-		if (nameElement && avatarElement) {
-			userData = {
-				username: data.username,
-				avatar: data.avatar,
-				role: data.role,
-				color: data.color,
-				id: data.id
+			nameElement.style.display = 'block';
+			avatarElement.style.display = 'block';
+
+			if (nameElement && avatarElement) {
+				userData = {
+					username: data.username,
+					avatar: data.avatar,
+					role: data.role,
+					color: data.color,
+					id: data.id
+				}
 			}
-		}
 
-		nameElement.textContent = data.username;
-		avatarElement.src = data.avatar;
+			nameElement.textContent = data.username;
+			avatarElement.src = data.avatar;
+		}
 	})
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
