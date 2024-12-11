@@ -19,8 +19,10 @@ var userData = {
 	id: -1
 };
 var beammpMetrics = {
-	beammp_players_online: "...", 
-	beammp_public_servers: "..."
+	players: "...", 
+	servers: "...",
+	beammpGameVer: "...",
+	beammpLauncherVer: "..."
 }
 
 export default angular.module('multiplayer', ['ui.router'])
@@ -158,15 +160,25 @@ export default angular.module('multiplayer', ['ui.router'])
 	</style>
 	<div class="beammp-info-bar">
 		<img src="/ui/modModules/multiplayer/beammp.png" style="margin: 0px 8px;" height="32px">
+		<span class="divider" id="beammp-profile-divider"></span>
 		<img src="/ui/modModules/multiplayer/icons/account-multiple.svg" style="padding: 5px" height="22px">
-		<span style="padding-left: 5px; padding-right: 10px;">Players: <strong id="beammpMetricsPlayers">${ beammpMetrics.beammp_players_online }</strong> </span>
+		<span style="padding-left: 5px; padding-right: 10px;">Players: <strong id="beammpMetricsPlayers">${ beammpMetrics.players }</strong> </span>
 		<img src="/ui/modModules/multiplayer/icons/dns.svg" style="padding: 5px" height="22px">
-		<span style="padding-left: 5px;">Servers: <strong id="beammpMetricsServers">${ beammpMetrics.beammp_public_servers }</strong> </span>
+		<span style="padding-left: 5px;">Servers: <strong id="beammpMetricsServers">${ beammpMetrics.servers }</strong> </span>
 		<span class="divider" id="beammp-profile-divider"></span>
 		<img src="${userData.avatar}" id="beammp-profile-avatar" style="padding: 5px; border-radius: 50%;" height="22px">
 		<span><strong id="beammp-profile-name">${userData.username}</strong> </span>
 	</div>
 	`
+
+	var beammpModInfo = document.createElement("div");
+	beammpModInfo.innerHTML = `
+		<span class="divider"></span>
+		<span style="margin-right: 5px;">
+			<span>BeamMP: v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span> <!--Launcher: v<span id="beammpLauncherVersion">${beammpMetrics.beammpLauncherVer}</span>--></span>
+		</span>
+	`
+	beammpModInfo.id = 'BeamMPVersionInsert'
 
 	$rootScope.$on('authReceived', function (event, data) {	
 		let nameElement = document.getElementById("beammp-profile-name")
@@ -186,25 +198,13 @@ export default angular.module('multiplayer', ['ui.router'])
 		avatarElement.src = data.avatar;
 	})
 
-	$rootScope.$on('beammpInfo', function (event, data) {
-		if (data.code == 200) {
-			let parts = data.body[0].split(" ")
-			// Initialize an empty object
-			const metrics = {};
+	$rootScope.$on('BeamMPInfo', function (event, data) {
+		beammpMetrics = data	
+		document.getElementById("beammpMetricsPlayers").textContent = beammpMetrics.players
+		document.getElementById("beammpMetricsServers").textContent = beammpMetrics.servers
 
-			// Loop through the array, incrementing by 2 to process key-value pairs
-			for (let i = 0; i < parts.length; i += 2) {
-					const key = parts[i];
-					const value = parts[i + 1];
-					metrics[key] = value;
-			}
-
-			beammpMetrics = metrics
-
-			
-			document.getElementById("beammpMetricsPlayers").textContent = beammpMetrics.beammp_players_online
-			document.getElementById("beammpMetricsServers").textContent = beammpMetrics.beammp_public_servers
-		}
+		document.getElementById("beammpModVersion").textContent = beammpMetrics.beammpGameVer
+		//document.getElementById("beammpLauncherVersion").textContent = beammpMetrics.beammpLauncherVer
 	})
 
 	$rootScope.$on('authReceived', function (event, data) {
@@ -237,12 +237,16 @@ export default angular.module('multiplayer', ['ui.router'])
 	})
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-
 		if (toState.name == "menu.mainmenu") {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
-			bngApi.engineLua('MPCoreNetwork.makeRequest("backend", "metrics", "beammpInfo")');
+			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
 			beammpUserInfo.style.display = "block";
 			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
+
+			if (!document.getElementById('BeamMPVersionInsert')) {
+				console.log('Adding Mod Version Info')
+				document.querySelector('#vue-app > div.vue-app-main.click-through > div.info-bar > div.info-bar-stats').appendChild(beammpModInfo)
+			}
 		} else {
 			beammpUserInfo.style.display = "none";
 		}
