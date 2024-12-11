@@ -116,7 +116,6 @@ export default angular.module('multiplayer', ['ui.router'])
 		var d = JSON.parse(decodeURI(data.message))
 		confirmationMessage = `Do you want to connect to the server at ${d.ip}:${d.port}?`
 		userConfirmed = window.confirm(confirmationMessage); 
-		//userConfirmed ? alert('Connecting to the server...') : alert('Connection canceled.');
 		if (userConfirmed) {
 			bngApi.engineLua(`MPCoreNetwork.connectToServer("${d.ip}","${d.port}","${d.sname}")`);
 		}
@@ -163,13 +162,12 @@ export default angular.module('multiplayer', ['ui.router'])
 		<img src="/ui/modModules/multiplayer/icons/dns.svg" style="padding: 5px" height="22px">
 		<span style="padding-left: 5px;">Servers: <strong id="beammpMetricsServers">${ beammpMetrics.beammp_public_servers }</strong> </span>
 		<span class="divider"></span>
-		<img src="${userData.avatar}" id="beammp-profile-avatar" style="padding: 5px" height="22px">
+		<img src="${userData.avatar}" id="beammp-profile-avatar" style="padding: 5px; border-radius: 50%;" height="22px">
 		<span><strong id="beammp-profile-name">${userData.username}</strong> </span>
 	</div>
 	`
 
-	$rootScope.$on('authReceived', function (event, data) {
-		//console.log('authReceived', data)
+	$rootScope.$on('authReceived', function (event, data) {	
 		let nameElement = document.getElementById("beammp-profile-name")
 		let avatarElement = document.getElementById("beammp-profile-avatar")
 
@@ -188,7 +186,6 @@ export default angular.module('multiplayer', ['ui.router'])
 	})
 
 	$rootScope.$on('beammpInfo', function (event, data) {
-		//console.log(`beammpInfo`, data)
 		if (data.code == 200) {
 			let parts = data.body[0].split(" ")
 			// Initialize an empty object
@@ -201,7 +198,6 @@ export default angular.module('multiplayer', ['ui.router'])
 					metrics[key] = value;
 			}
 
-			//console.log(metrics)
 			beammpMetrics = metrics
 
 			
@@ -230,12 +226,10 @@ export default angular.module('multiplayer', ['ui.router'])
 	})
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-    //console.log(event, toState, toParams, fromState, fromParams)
 
 		if (toState.name == "menu.mainmenu") {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
 			bngApi.engineLua('MPCoreNetwork.makeRequest("backend", "metrics", "beammpInfo")');
-			//console.log("Show BeamMP Info", userData)
 			beammpUserInfo.style.display = "block";
 			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
 		} else {
@@ -400,7 +394,7 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 
 	// Display the servers list page once the page is loaded
 	$scope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-		//console.log(toState.url);
+		bngApi.engineLua('MPCoreNetwork.getLoginState()');
 		if (toState.url == "/multiplayer") {
 			// local://local/ui/#/menu/multiplayer/mpservers
 			document.getElementById('servers-btn').click();

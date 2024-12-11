@@ -729,9 +729,6 @@ local function onUiChangedState (curUIState, prevUIState)
 	if curUIState == 'menu' and getMissionFilename() == "" then -- required due to game bug that happens if UI is reloaded on the main menu
 		guihooks.trigger('ChangeState', 'menu.mainmenu')
 	end
-	if (curUIState == 'menu.multiplayer.servers') then
-		guihooks.trigger('authReceived', authResult)
-	end
 end
 
 --- Serializes data for saving to be loaded on lua reload. Allows for lua state memory persistence between reloads
