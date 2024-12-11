@@ -11,6 +11,17 @@ var favorites = [];
 var recents = [];
 var mdDialog;
 var mdDialogVisible = false;
+var userData = {
+	username: 'Loading...',
+	avatar: '',
+	role: 'USER',
+	color: '',
+	id: -1
+};
+var beammpMetrics = {
+	beammp_players_online: "...", 
+	beammp_public_servers: "..."
+}
 
 export default angular.module('multiplayer', ['ui.router'])
 
@@ -110,6 +121,127 @@ export default angular.module('multiplayer', ['ui.router'])
 			bngApi.engineLua(`MPCoreNetwork.connectToServer("${d.ip}","${d.port}","${d.sname}")`);
 		}
 	})
+
+	var beammpUserInfo = document.createElement("div");
+	beammpUserInfo.innerHTML = `
+	<style>
+.beammp-info-bar {
+  z-index: 1000000000;
+  position: absolute;
+  top: 3em;
+  right: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 3em;
+  padding-right: 10px;
+  background-image: linear-gradient(67deg,transparent 1.05rem,#f60 1.15rem 1.4rem,#00000099 1.5rem);
+  border-top-right-radius: var(--bng-corners-1);
+  border-bottom-right-radius: var(--bng-corners-1);
+  color: #fff;
+  pointer-events: all;
+  height: 2.9em;
+  line-height: 2.9em;
+  overflow: hidden;
+}
+
+.beammp-info-bar > span.divider {
+  display: inline-block;
+  width: .25rem;
+  height: 1.8em;
+  margin-left: .5rem;
+  margin-right: .2rem;
+  padding: 0!important;
+  background-color: #f60;
+  transform: skew(23deg);
+}
+	</style>
+	<div class="beammp-info-bar">
+		<img src="/ui/modModules/multiplayer/icons/account-multiple.svg" style="padding: 5px" height="22px">
+		<span style="padding-left: 5px; padding-right: 10px;">Players: <strong id="beammpMetricsPlayers">${ beammpMetrics.beammp_players_online }</strong> </span>
+		<img src="/ui/modModules/multiplayer/icons/dns.svg" style="padding: 5px" height="22px">
+		<span style="padding-left: 5px;">Servers: <strong id="beammpMetricsServers">${ beammpMetrics.beammp_public_servers }</strong> </span>
+		<span class="divider"></span>
+		<img src="${userData.avatar}" id="beammp-profile-avatar" style="padding: 5px" height="22px">
+		<span><strong id="beammp-profile-name">${userData.username}</strong> </span>
+	</div>
+	`
+
+	$rootScope.$on('authReceived', function (event, data) {
+		//console.log('authReceived', data)
+		let nameElement = document.getElementById("beammp-profile-name")
+		let avatarElement = document.getElementById("beammp-profile-avatar")
+
+		if (nameElement && avatarElement) {
+			userData = {
+				username: data.username,
+				avatar: data.avatar,
+				role: data.role,
+				color: data.color,
+				id: data.id
+			}
+		}
+
+		nameElement.textContent = data.username;
+		avatarElement.src = data.avatar;
+	})
+
+	$rootScope.$on('beammpInfo', function (event, data) {
+		//console.log(`beammpInfo`, data)
+		if (data.code == 200) {
+			let parts = data.body[0].split(" ")
+			// Initialize an empty object
+			const metrics = {};
+
+			// Loop through the array, incrementing by 2 to process key-value pairs
+			for (let i = 0; i < parts.length; i += 2) {
+					const key = parts[i];
+					const value = parts[i + 1];
+					metrics[key] = value;
+			}
+
+			//console.log(metrics)
+			beammpMetrics = metrics
+
+			
+			document.getElementById("beammpMetricsPlayers").textContent = beammpMetrics.beammp_players_online
+			document.getElementById("beammpMetricsServers").textContent = beammpMetrics.beammp_public_servers
+		}
+	})
+
+	$rootScope.$on('authReceived', function (event, data) {
+		console.log('authReceived', data)
+		let nameElement = document.getElementById("beammp-profile-name")
+		let avatarElement = document.getElementById("beammp-profile-avatar")
+
+		if (nameElement && avatarElement) {
+			userData = {
+				username: data.username,
+				avatar: data.avatar,
+				role: data.role,
+				color: data.color,
+				id: data.id
+			}
+		}
+
+		nameElement.textContent = data.username;
+		avatarElement.src = data.avatar;
+	})
+
+	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
+    //console.log(event, toState, toParams, fromState, fromParams)
+
+		if (toState.name == "menu.mainmenu") {
+			bngApi.engineLua('MPCoreNetwork.getLoginState()');
+			bngApi.engineLua('MPCoreNetwork.makeRequest("backend", "metrics", "beammpInfo")');
+			//console.log("Show BeamMP Info", userData)
+			beammpUserInfo.style.display = "block";
+			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
+		} else {
+			beammpUserInfo.style.display = "none";
+		}
+  })
 }])
 
 /* //////////////////////////////////////////////////////////////////////////////////////////////

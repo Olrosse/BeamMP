@@ -197,6 +197,12 @@ local function autoLogin()
 	send('Nc')
 end
 
+--- Gets the current login data.
+-- @usage getLoginState() -- Triggers a return of the login data
+local function getLoginState()
+	guihooks.trigger("authReceived", authResult)
+end
+
 --- Tells the launcher to log out the user.
 -- @usage logout() -- Tells the launcher to logout from BeamMP Services
 local function logout()
@@ -430,6 +436,19 @@ local function loginReceived(params)
 	end
 
 	guihooks.trigger('authReceived', authResult)
+end
+
+-- Enable making a http request on demand
+local function makeRequest (e, p, r)
+	local res = {}; 
+	local _, code, headers = http.request{
+		url = "http://localhost:".. proxyPort .."/"..e.."/"..p, 
+		sink = ltn12.sink.table(res)
+	}; 
+	local ret = {}
+	ret["code"] = code
+	ret["body"] = res
+	guihooks.trigger(r, ret)
 end
 
 --- Returns the result from authentication, which includes the user's name, beammp id and role
@@ -763,6 +782,7 @@ M.approveModDownload   = approveModDownload
 -- auth
 M.login                = login
 M.autoLogin            = autoLogin
+M.getLoginState        = getLoginState
 M.logout               = logout
 M.isLoggedIn           = isLoggedIn
 M.getAuthResult        = getAuthResult
@@ -774,6 +794,7 @@ M.onClientEndMission   = onClientEndMission
 M.onClientStartMission = onClientStartMission
 -- UI
 M.openURL              = openURL
+M.makeRequest          = makeRequest
 M.sendBeamMPInfo       = sendBeamMPInfo
 M.requestPlayers       = requestPlayers
 M.requestServerList    = requestServerList
