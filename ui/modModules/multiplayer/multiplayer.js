@@ -174,7 +174,7 @@ export default angular.module('multiplayer', ['ui.router'])
 	beammpModInfo.innerHTML = `
 		<span class="divider"></span>
 		<span style="margin-right: 5px;">
-			<span>BeamMP: v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span> <!--Launcher: v<span id="beammpLauncherVersion">${beammpMetrics.beammpLauncherVer}</span>--></span>
+			<span>BeamMP: v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span></span>
 		</span>
 	`
 	beammpModInfo.id = 'BeamMPVersionInject'
@@ -197,7 +197,6 @@ export default angular.module('multiplayer', ['ui.router'])
 		nameElement.textContent = data.username;
 		avatarElement.src = data.avatar;
 
-		//console.log('authReceived', data)
 		if (data.avatar == undefined) {
 			divider.style.display = 'none'
 			nameElement.style.display = 'none'
@@ -230,7 +229,6 @@ export default angular.module('multiplayer', ['ui.router'])
 		document.getElementById("beammpMetricsServers").textContent = beammpMetrics.servers
 
 		document.getElementById("beammpModVersion").textContent = beammpMetrics.beammpGameVer
-		//document.getElementById("beammpLauncherVersion").textContent = beammpMetrics.beammpLauncherVer
 	})
 
 	function injectVersion() {
