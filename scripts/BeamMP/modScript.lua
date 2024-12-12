@@ -19,7 +19,6 @@ if majorVer ~= compatibleVersion then
 	end
 	return
 else
-	guihooks.trigger("toastrMsg", {type="warning", title="Old UI Loaded for BeamMP", msg="BeamMP is not yet compatible with the new BeamNG.drive Vue based UI. We are working actively to resolve this as soon as possible.", config={closeButton=true, timeOut=0, extendedTimeOut=0}})
 	log('M', 'versionCheck', 'BeamMP is compatible with the current version.')
 end
 
