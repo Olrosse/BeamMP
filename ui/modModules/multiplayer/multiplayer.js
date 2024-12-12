@@ -192,8 +192,11 @@ export default angular.module('multiplayer', ['ui.router'])
 				color: data.color,
 				id: data.id
 			}
+		} else {
+			return;
 		}
 
+		
 		nameElement.textContent = data.username;
 		avatarElement.src = data.avatar;
 
@@ -238,11 +241,37 @@ export default angular.module('multiplayer', ['ui.router'])
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
 		console.log(`Going to "${toState.name}" from "${fromState.name}"`)
-		if (toState.name == "menu.mainmenu" || toState.name.includes("menu.multiplayer")) {
+		if (toState.name == "menu.mainmenu") {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
 			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
 			beammpUserInfo.style.display = "block";
 			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
+			console.log('Adding Mod Version Info')
+			injectVersion()
+		} else if (toState.name.includes("menu.multiplayer")) {
+			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
+			beammpUserInfo.style.display = "block";
+			let userinfo =  document.getElementsByTagName("body")[0].appendChild(beammpUserInfo).children[1]
+			userinfo.style.marginRight = "0"
+			userinfo.style.top = "0"
+			userinfo.style.lineHeight = "2.4em"
+			userinfo.style.height = "2.4em"
+
+
+			let nameElement = document.getElementById("beammp-profile-name");
+			let avatarElement = document.getElementById("beammp-profile-avatar");
+			let divider = document.getElementById("beammp-profile-divider");
+
+			if (nameElement) {
+				nameElement.remove();
+			}
+			if (avatarElement) {
+				avatarElement.remove();
+			}
+			if (divider) {
+				divider.remove();
+			}
+			
 			console.log('Adding Mod Version Info')
 			injectVersion()
 		} else {
