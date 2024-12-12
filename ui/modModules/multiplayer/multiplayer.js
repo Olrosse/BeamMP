@@ -170,7 +170,6 @@ export default angular.module('multiplayer', ['ui.router'])
 		<span><strong id="beammp-profile-name">${userData.username}</strong> </span>
 	</div>
 	`
-
 	var beammpModInfo = document.createElement("div");
 	beammpModInfo.innerHTML = `
 		<span class="divider"></span>
@@ -178,11 +177,12 @@ export default angular.module('multiplayer', ['ui.router'])
 			<span>BeamMP: v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span> <!--Launcher: v<span id="beammpLauncherVersion">${beammpMetrics.beammpLauncherVer}</span>--></span>
 		</span>
 	`
-	beammpModInfo.id = 'BeamMPVersionInsert'
+	beammpModInfo.id = 'BeamMPVersionInject'
 
 	$rootScope.$on('authReceived', function (event, data) {	
 		let nameElement = document.getElementById("beammp-profile-name")
 		let avatarElement = document.getElementById("beammp-profile-avatar")
+		let divider = document.getElementById("beammp-profile-divider")
 
 		if (nameElement && avatarElement) {
 			userData = {
@@ -196,27 +196,14 @@ export default angular.module('multiplayer', ['ui.router'])
 
 		nameElement.textContent = data.username;
 		avatarElement.src = data.avatar;
-	})
 
-	$rootScope.$on('BeamMPInfo', function (event, data) {
-		beammpMetrics = data	
-		document.getElementById("beammpMetricsPlayers").textContent = beammpMetrics.players
-		document.getElementById("beammpMetricsServers").textContent = beammpMetrics.servers
-
-		document.getElementById("beammpModVersion").textContent = beammpMetrics.beammpGameVer
-		//document.getElementById("beammpLauncherVersion").textContent = beammpMetrics.beammpLauncherVer
-	})
-
-	$rootScope.$on('authReceived', function (event, data) {
-		console.log('authReceived', data)
+		//console.log('authReceived', data)
 		if (data.avatar == undefined) {
-			document.getElementById("beammp-profile-divider").style.display = 'none'
-			document.getElementById("beammp-profile-name").style.display = 'none'
-			document.getElementById("beammp-profile-avatar").style.display = 'none'
+			divider.style.display = 'none'
+			nameElement.style.display = 'none'
+			avatarElement.style.display = 'none'
 		} else {
-			document.getElementById("beammp-profile-divider").style.display = 'block'
-			let nameElement = document.getElementById("beammp-profile-name")
-			let avatarElement = document.getElementById("beammp-profile-avatar")
+			divider.style.display = 'block'
 
 			nameElement.style.display = 'block';
 			avatarElement.style.display = 'block';
@@ -236,17 +223,30 @@ export default angular.module('multiplayer', ['ui.router'])
 		}
 	})
 
+	$rootScope.$on('BeamMPInfo', function (event, data) {
+		beammpMetrics = data	
+		injectVersion()
+		document.getElementById("beammpMetricsPlayers").textContent = beammpMetrics.players
+		document.getElementById("beammpMetricsServers").textContent = beammpMetrics.servers
+
+		document.getElementById("beammpModVersion").textContent = beammpMetrics.beammpGameVer
+		//document.getElementById("beammpLauncherVersion").textContent = beammpMetrics.beammpLauncherVer
+	})
+
+	function injectVersion() {
+		if (document.querySelector('#vue-app > div.vue-app-main.click-through > div.info-bar > div.info-bar-stats'))
+			document.querySelector('#vue-app > div.vue-app-main.click-through > div.info-bar > div.info-bar-stats').appendChild(beammpModInfo);
+	}
+
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-		if (toState.name == "menu.mainmenu") {
+		console.log(`Going to "${toState.name}" from "${fromState.name}"`)
+		if (toState.name == "menu.mainmenu" || toState.name.includes("menu.multiplayer")) {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
 			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
 			beammpUserInfo.style.display = "block";
 			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
-
-			if (!document.getElementById('BeamMPVersionInsert')) {
-				console.log('Adding Mod Version Info')
-				document.querySelector('#vue-app > div.vue-app-main.click-through > div.info-bar > div.info-bar-stats').appendChild(beammpModInfo)
-			}
+			console.log('Adding Mod Version Info')
+			injectVersion()
 		} else {
 			beammpUserInfo.style.display = "none";
 		}
