@@ -98,7 +98,7 @@
 
   <md-list-item md-no-ink>
     <md-tooltip md-direction="right">{{:: 'ui.options.multiplayer.queueApplySpeed.tooltip' | translate }}</md-tooltip>
-    <p flex="50"><span class="mp-setting-highlight">{{:: 'ui.options.multiplayer.new' | translate }}</span> {{:: 'ui.options.multiplayer.queueApplySpeed' | translate }}</p>
+    <p flex="50">{{:: 'ui.options.multiplayer.queueApplySpeed' | translate }}</p>
     <md-slider flex ng-model="options.data.values.queueApplySpeed" min="0" max="10" step="1" aria-label="_"
       ng-change="options.applyState()">
     </md-slider>
@@ -112,7 +112,7 @@
 
   <md-list-item md-no-ink>
     <md-tooltip md-direction="right">{{:: 'ui.options.multiplayer.queueApplyTimeout.tooltip' | translate }}</md-tooltip>
-    <p flex="50"><span class="mp-setting-highlight">{{:: 'ui.options.multiplayer.new' | translate }}</span> {{:: 'ui.options.multiplayer.queueApplyTimeout' | translate }}</p>
+    <p flex="50">{{:: 'ui.options.multiplayer.queueApplyTimeout' | translate }}</p>
     <md-slider flex ng-model="options.data.values.queueApplyTimeout" min="0" max="20" step="1" aria-label="_"
       ng-change="options.applyState()">
     </md-slider>
@@ -303,7 +303,7 @@
 </div>
 
 <md-list-item md-no-ink>
-  <p><span class="mp-setting-highlight">{{:: 'ui.options.multiplayer.new' | translate }}</span> {{:: 'ui.options.multiplayer.showSpectators' | translate }}</p>
+  <p>{{:: 'ui.options.multiplayer.showSpectators' | translate }}</p>
   <md-tooltip md-direction="right">{{:: 'ui.options.multiplayer.showSpectators.tooltip' | translate }}</md-tooltip>
   <md-checkbox ng-model="options.data.values.showSpectators" ng-change="options.applyState()"></md-checkbox>
 </md-list-item>
