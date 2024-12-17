@@ -174,12 +174,13 @@ export default angular.module('multiplayer', ['ui.router'])
 	beammpModInfo.innerHTML = `
 		<span class="divider"></span>
 		<span style="margin-right: 5px;">
-			<span>BeamMP: v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span></span>
+			<span>BeamMP v<span id="beammpModVersion">${beammpMetrics.beammpGameVer}</span></span>
 		</span>
 	`
 	beammpModInfo.id = 'BeamMPVersionInject'
 
 	$rootScope.$on('authReceived', function (event, data) {	
+		console.log(event, data)
 		let nameElement = document.getElementById("beammp-profile-name")
 		let avatarElement = document.getElementById("beammp-profile-avatar")
 		let divider = document.getElementById("beammp-profile-divider")
@@ -204,7 +205,7 @@ export default angular.module('multiplayer', ['ui.router'])
 			divider.style.display = 'none'
 			nameElement.style.display = 'none'
 			avatarElement.style.display = 'none'
-		} else {
+		} else if (window.location.href.includes("menu.mainmenu")) {
 			divider.style.display = 'block'
 
 			nameElement.style.display = 'block';
@@ -240,13 +241,31 @@ export default angular.module('multiplayer', ['ui.router'])
 	}
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-		console.log(`Going to "${toState.name}" from "${fromState.name}"`)
+		console.log(`Going from "${fromState.name}" -> "${toState.name}"`)
 		if (toState.name == "menu.mainmenu") {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
 			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
 			beammpUserInfo.style.display = "block";
-			document.getElementsByTagName("body")[0].appendChild(beammpUserInfo)
-			console.log('Adding Mod Version Info')
+			let userinfo =  document.getElementsByTagName("body")[0].appendChild(beammpUserInfo).children[1]
+			console.log(userinfo)
+			userinfo.style = null
+
+
+			let nameElement = document.getElementById("beammp-profile-name");
+			let avatarElement = document.getElementById("beammp-profile-avatar");
+			let divider = document.getElementById("beammp-profile-divider");
+
+			if (nameElement) {
+				nameElement.style.display = "block";
+				console.log('name shown', nameElement)
+			}
+			if (avatarElement) {
+				avatarElement.style.display = "block";
+			}
+			if (divider) {
+				divider.style.display = "block";
+			}
+
 			injectVersion()
 		} else if (toState.name.includes("menu.multiplayer")) {
 			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
@@ -263,14 +282,16 @@ export default angular.module('multiplayer', ['ui.router'])
 			let divider = document.getElementById("beammp-profile-divider");
 
 			if (nameElement) {
-				nameElement.remove();
+				nameElement.style.display = "none";
+				console.log('name hidden', nameElement)
 			}
 			if (avatarElement) {
-				avatarElement.remove();
+				avatarElement.style.display = "none";
 			}
 			if (divider) {
-				divider.remove();
+				divider.style.display = "none";
 			}
+
 			
 			console.log('Adding Mod Version Info')
 			injectVersion()
