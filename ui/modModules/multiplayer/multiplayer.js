@@ -596,7 +596,7 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 	};
 
 	vm.showCustomServer = function() {
-		document.getElementById('addCustomFav').style.display = 'block';
+		document.getElementById('addCustomFav').style.display = 'flex';
 	};
 
 	vm.addCustomServer = async function() {
@@ -713,6 +713,11 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 				idElement.onclick = function() {
 					bngApi.engineLua(`setClipboard("`+data.id+`")`);
 					toastr.info("Copied ID to clipboard")
+				}
+				if (data.role != "USER") {
+					idElement.style.marginTop = "0"
+				} else {
+					idElement.style.marginTop = "6px"
 				}
 			} else {
 				idElement.textContent = "";
@@ -1260,7 +1265,7 @@ function getRecents() {
 function addRecent(server, isUpdate) { // has to have name, ip, port
 	server.addTime = Date.now();
 	recents.push(server);
-	recents = recents.slice(-1 * 30); //keep the last 30 entries
+	recents = recents.slice(-1 * 50); //keep the last 50 entries
 	if(!isUpdate) localStorage.setItem("recents", JSON.stringify(recents));
 }
 

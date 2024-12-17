@@ -151,25 +151,17 @@ div#LoadingBody {
   border-radius: 5px;
 }
 
-div#addCustomFav {
+.addCustomFav {
   color: white;
 
   position: absolute;
   z-index: 100;
 
-  top: 40%;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
-  -ms-transform: translateX(-50%);
-  transform: translateX(-50%);
-  left: 50%;
-
-  background-color: #848484c7;
+  background-color: grey;
   padding: 15px;
   border-radius: 5px;
 
-  height: 30%;
-  width: 40%;
+  width: 700px
 }
 
 input {
@@ -252,7 +244,7 @@ md-slider.ng-pristine.ng-untouched.ng-valid.md-default-theme.ng-empty {
   background-color: grey;
   padding: 20px;
   border-radius: 8px;
-  width: 50%;
+  width: 30%;
   display: flex;
   flex-wrap: wrap;
 }

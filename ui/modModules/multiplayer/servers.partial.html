@@ -21,8 +21,8 @@
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
 		</md-button>
 	
-		<div class="filter-overlay" ng-show="isFilterOverlayVisible">
-			<div class="filter-body">
+		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay()">
+			<div class="filter-body" ng-click="$event.stopPropagation();">
 				<h2>{{:: 'ui.multiplayer.filterOptions' | translate}}</h2>
 	
 				<md-button class="md-icon-button" style="margin-left: auto;"
@@ -84,7 +84,7 @@
 						</div>
 					</md-checkbox>
 				  
-					<div class="md-slider-container" ng-if="multiplayermenu.checkModSlider" style="width: 70%;">
+					<div class="md-slider-container" ng-if="multiplayermenu.checkModSlider" style="width: 60%;">
 					  <md-slider flex ng-model="multiplayermenu.sliderMaxModSize" min="0" max="5000" step="50" aria-label="_"></md-slider>
 					  <span style="margin: 0px 15px; padding-top: 13px; color: white;">
 						{{ multiplayermenu.sliderMaxModSize }} MB
