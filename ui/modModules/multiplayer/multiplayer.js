@@ -180,7 +180,7 @@ export default angular.module('multiplayer', ['ui.router'])
 	beammpModInfo.id = 'BeamMPVersionInject'
 
 	$rootScope.$on('authReceived', function (event, data) {	
-		console.log(event, data)
+		//console.log(event, data)
 		let nameElement = document.getElementById("beammp-profile-name")
 		let avatarElement = document.getElementById("beammp-profile-avatar")
 		let divider = document.getElementById("beammp-profile-divider")
@@ -241,13 +241,13 @@ export default angular.module('multiplayer', ['ui.router'])
 	}
 
 	$rootScope.$on('$stateChangeSuccess', async function (event, toState, toParams, fromState, fromParams) {
-		console.log(`Going from "${fromState.name}" -> "${toState.name}"`)
+		//console.log(`Going from "${fromState.name}" -> "${toState.name}"`)
 		if (toState.name == "menu.mainmenu") {
 			bngApi.engineLua('MPCoreNetwork.getLoginState()');
 			bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()');
 			beammpUserInfo.style.display = "block";
 			let userinfo =  document.getElementsByTagName("body")[0].appendChild(beammpUserInfo).children[1]
-			console.log(userinfo)
+			//console.log(userinfo)
 			userinfo.style = null
 
 
@@ -293,7 +293,7 @@ export default angular.module('multiplayer', ['ui.router'])
 			}
 
 			
-			console.log('Adding Mod Version Info')
+			//console.log('Adding Mod Version Info')
 			injectVersion()
 		} else {
 			beammpUserInfo.style.display = "none";
