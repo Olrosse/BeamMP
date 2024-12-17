@@ -7,15 +7,17 @@
 	
 		<md-button id="extra-button" class="button servers-button" style="display: none;"></md-button>
 	
-		<md-button class="md-icon-button" style="margin-left: 20px;"
+		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
 			ng-click="toggleFilterOverlay()">
-			<md-icon>filter_list</md-icon>
+			<span style="margin-right: 10px">Open Filters</span>
+			<md-icon style="margin: 0;">filter_list</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.openFilters' | translate}}</md-tooltip>
 		</md-button>
 
-		<md-button class="md-icon-button"
+		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
 			ng-click="clearFilters()">
-			<md-icon>clear</md-icon>
+			<span style="margin-right: 10px">Clear filters</span>
+			<md-icon style="margin: 0; vertical-align: middle;">clear</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
 		</md-button>
 	
