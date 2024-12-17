@@ -16,10 +16,12 @@
 
 		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
 			ng-click="clearFilters()">
-			<span style="margin-right: 10px">Clear filters</span>
+			<span style="margin-right: 10px">Clear Filters</span>
 			<md-icon style="margin: 0; vertical-align: middle;">clear</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
 		</md-button>
+
+		<span id="activeFilters" style="align-self: center; padding-left: 10px;"></span>
 	
 		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay()">
 			<div class="filter-body" ng-click="$event.stopPropagation();">

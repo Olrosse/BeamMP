@@ -865,13 +865,28 @@ function($scope, $state, $timeout) {
 			selectMap: vm.selectMap,
 			serverVersions: vm.serverVersions
 		};
+
+		var activeFiltersText = "";
+		if (vm.checkIsEmpty) activeFiltersText += "Empty, ";
+		if (vm.checkIsNotEmpty) activeFiltersText += "Not empty, ";
+		if (vm.checkIsNotFull) activeFiltersText += "Not full, ";
+		if (vm.checkModSlider) activeFiltersText += "Mod size < " + vm.sliderMaxModSize + "MB, ";
+		if (vm.selectMap != "Any map") activeFiltersText += "Map: " + vm.selectMap + ", ";
+		if (vm.serverVersions.length > 0) activeFiltersText += "Server Version" + vm.serverVersions.join(", ") + ", ";
+
+		if (activeFiltersText.length > 0) activeFiltersText = activeFiltersText.slice(0, -2);
+	
+		if (activeFiltersText.length != 0)
+			activeFiltersText = "Active Filters: " + activeFiltersText;
+
+		document.getElementById("activeFilters").innerText = activeFiltersText
+
 		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
 	};
 
 
 	$scope.isFilterOverlayVisible = false;
 
-	vm.repopulate();
 	$scope.toggleFilterOverlay = function () {
 		$scope.isFilterOverlayVisible = !$scope.isFilterOverlayVisible;
 	};
