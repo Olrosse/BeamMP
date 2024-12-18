@@ -759,7 +759,7 @@ function($scope, $state, $timeout, $filter) {
 	var vm = this;
 	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
 
-	if (serverListOptions != null) {
+	if (serverListOptions != null && serverListOptions.serverVersions != null && serverListOptions.tags != null) {
 		vm.checkIsEmpty = serverListOptions.checkIsEmpty
 		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
 		vm.checkIsNotFull = serverListOptions.checkIsNotFull
