@@ -14,13 +14,15 @@
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.openFilters' | translate}}</md-tooltip>
 		</md-button>
 
-		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
+		<md-button class="button servers-button" style="display: none; justify-content: center; width: 200px;"
+			id="clearFiltersButton"
 			ng-click="clearFilters()">
 			<span style="margin-right: 10px">Clear Filters</span>
 			<md-icon style="margin: 0; vertical-align: middle;">clear</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
 		</md-button>
 
+		<span id="FiltersPrefix" style="display: none; font-weight: bold; align-self: center;">Active Filters: </span>
 		<span id="activeFilters" style="align-self: center; padding-left: 10px;"></span>
 	
 		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay()">
@@ -66,16 +68,26 @@
 					  </md-select>
 				  
 					  <md-select id="filter-dropdown" ng-model="multiplayermenu.serverVersions" multiple placeholder="All versions"
+					class="md-no-underline dropdown">
+					<md-tooltip md-direction="right">
+					  {{:: 'ui.multiplayer.serverVersionFilterTooltip' | translate}}
+					</md-tooltip>
+					<md-option ng-repeat="version in multiplayermenu.availableServerVersions" ng-value="multiplayermenu.availableServerVersions[$index]" style="height: 40px;">
+					  {{ version }}
+					</md-option>
+				  </md-select>
+
+					  <md-select id="filter-dropdown" ng-model="multiplayermenu.tags" multiple placeholder="All tags"
 						class="md-no-underline dropdown">
 						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.serverVersionFilterTooltip' | translate}}
+						  {{:: 'ui.multiplayer.tagFilterTooltip' | translate}}
 						</md-tooltip>
-						<md-option ng-repeat="version in multiplayermenu.availableServerVersions" ng-value="multiplayermenu.availableServerVersions[$index]" style="height: 40px;">
+						<md-option ng-repeat="version in multiplayermenu.availableTags" ng-value="multiplayermenu.availableTags[$index]" style="height: 40px;">
 						  {{ version }}
 						</md-option>
 					  </md-select>
 					</div>
-				  
+
 					<md-checkbox ng-model="multiplayermenu.checkModSlider" style="display: flex; align-items: center;">
 						<md-tooltip md-direction="right">
 							{{:: 'ui.multiplayer.modSliderTooltip' | translate}}
@@ -93,6 +105,7 @@
 					  </span>
 					</div>
 				  </div>
+				</div>
 			</div>
 		</div>
 		<md-divider></md-divider>

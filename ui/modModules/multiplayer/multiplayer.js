@@ -769,6 +769,7 @@ function($scope, $state, $timeout) {
 			vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
 			vm.selectMap = serverListOptions.selectMap
 			vm.serverVersions = serverListOptions.serverVersions
+			vm.tags = serverListOptions.tags
 			vm.searchText = ""
 		} else {
 			vm.checkIsEmpty = false
@@ -778,6 +779,7 @@ function($scope, $state, $timeout) {
 			vm.sliderMaxModSize = 500 // in MB
 			vm.selectMap = "Any map"
 			vm.serverVersions = []
+			vm.tags = []
 			vm.searchText = ""
 		}
 
@@ -817,6 +819,7 @@ function($scope, $state, $timeout) {
 
 		vm.availableServerVersions = [];
 		vm.availableMaps = [];
+		vm.availableTags = [];
 
 		for (const server of servers) {
 			if (!vm.availableServerVersions.includes("v" + server.version)) vm.availableServerVersions.push("v" + server.version);
@@ -824,6 +827,11 @@ function($scope, $state, $timeout) {
 			var smoothMapName = SmoothMapName(server.map);
 
 			if(!vm.availableMaps.includes(smoothMapName)) vm.availableMaps.push(smoothMapName);
+
+			var serverTags = server.tags.split(",");
+			for (const tag of serverTags) {
+				if (!vm.availableTags.includes(tag.trim())) vm.availableTags.push(tag.trim());	
+			}
 		}
 
 		
@@ -831,6 +839,8 @@ function($scope, $state, $timeout) {
 		vm.availableMaps.unshift("Any map");
 
 		vm.availableServerVersions.sort();
+		
+		vm.availableTags.sort();
 
 		vm.repopulate();
 	});
@@ -853,6 +863,7 @@ function($scope, $state, $timeout) {
 			vm.sliderMaxModSize,
 			vm.selectMap,
 			vm.serverVersions,
+			vm.tags,
 			bngApi
 		);
 
@@ -863,7 +874,8 @@ function($scope, $state, $timeout) {
 			checkModSlider: vm.checkModSlider,
 			sliderMaxModSize: vm.sliderMaxModSize,
 			selectMap: vm.selectMap,
-			serverVersions: vm.serverVersions
+			serverVersions: vm.serverVersions,
+			tags: vm.tags
 		};
 
 		var activeFiltersText = "";
@@ -872,12 +884,20 @@ function($scope, $state, $timeout) {
 		if (vm.checkIsNotFull) activeFiltersText += "Not full, ";
 		if (vm.checkModSlider) activeFiltersText += "Mod size < " + vm.sliderMaxModSize + "MB, ";
 		if (vm.selectMap != "Any map") activeFiltersText += "Map: " + vm.selectMap + ", ";
-		if (vm.serverVersions.length > 0) activeFiltersText += "Server Version" + vm.serverVersions.join(", ") + ", ";
+		if (vm.serverVersions.length > 0) activeFiltersText += "Server Version(s)" + vm.serverVersions.join(", ") + ", ";
+		if (vm.tags.length > 0) activeFiltersText += "Tags(s): " + vm.tags.join(", ") + ", ";
 
-		if (activeFiltersText.length > 0) activeFiltersText = activeFiltersText.slice(0, -2);
-	
-		if (activeFiltersText.length != 0)
-			activeFiltersText = "Active Filters: " + activeFiltersText;
+		var clearFiltersButton = document.getElementById("clearFiltersButton");
+		//var FiltersPrefix = document.getElementById("FiltersPrefix");
+
+		if (activeFiltersText.length > 0) { 
+			activeFiltersText = activeFiltersText.slice(0, -2);
+			clearFiltersButton.style.display = "block"; 
+			//FiltersPrefix.style.display = "block";
+		} else {
+			clearFiltersButton.style.display = "none";
+			//FiltersPrefix.style.display = "none";
+		}
 
 		document.getElementById("activeFilters").innerText = activeFiltersText
 
@@ -899,6 +919,7 @@ function($scope, $state, $timeout) {
 		vm.sliderMaxModSize = 500;
 		vm.selectMap = "Any map";
 		vm.serverVersions = [];
+		vm.tags = [];
 		vm.repopulate();
 	}
 
@@ -1348,7 +1369,7 @@ function createRow(table, server, bgcolor, bngApi, isFavorite, isRecent, sname) 
 }
 
 // /!\ IMPORTANT /!\ //// TYPE 0 = Normal / 1 = Favorites / 2 = Recents
-async function populateTable(tableTbody, servers, tab, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any map', SelectedServerVersions = [], bngApi) {
+async function populateTable(tableTbody, servers, tab, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any map', SelectedServerVersions = [], tags = [], bngApi) {
 	var newTbody = document.createElement('tbody');
 	newTbody.id = "serversTableBody";
 
@@ -1365,6 +1386,15 @@ async function populateTable(tableTbody, servers, tab, searchText = '', checkIsE
 		if (tab == "featured" && !server.featured) continue;
 		if (tab == "partner" && !server.partner) continue;
 
+		//server.tags = "tag1,tag2"
+		var serverTags = server.tags.toLowerCase().split(",").map(tag => tag.trim());
+
+		var missingTag = false;
+		for (let tag of tags) {
+			if (!serverTags.includes(tag.toLowerCase())) missingTag = true;
+		}
+
+		if (missingTag) continue;
 
 		var shown = true;
 		var smoothMapName = SmoothMapName(server.map);

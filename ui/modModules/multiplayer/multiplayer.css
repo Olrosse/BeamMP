@@ -19,6 +19,7 @@
   height: 40px;
   background: unset;
   color: white !important;
+  margin: 10px;
 }
 
 #back {
@@ -244,7 +245,7 @@ md-slider.ng-pristine.ng-untouched.ng-valid.md-default-theme.ng-empty {
   background-color: grey;
   padding: 20px;
   border-radius: 8px;
-  width: 30%;
+  width: 800px;
   display: flex;
   flex-wrap: wrap;
 }
