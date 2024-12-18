@@ -759,29 +759,27 @@ function($scope, $state, $timeout, $filter) {
 	var vm = this;
 	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
 
-	if (serverListOptions)
-
-		if (serverListOptions != null) {
-			vm.checkIsEmpty = serverListOptions.checkIsEmpty
-			vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
-			vm.checkIsNotFull = serverListOptions.checkIsNotFull
-			vm.checkModSlider = serverListOptions.checkModSlider
-			vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
-			vm.selectMap = serverListOptions.selectMap
-			vm.serverVersions = serverListOptions.serverVersions
-			vm.tags = serverListOptions.tags
-			vm.searchText = ""
-		} else {
-			vm.checkIsEmpty = false
-			vm.checkIsNotEmpty = false
-			vm.checkIsNotFull = false
-			vm.checkModSlider = false
-			vm.sliderMaxModSize = 500 // in MB
-			vm.selectMap = "Any map"
-			vm.serverVersions = []
-			vm.tags = []
-			vm.searchText = ""
-		}
+	if (serverListOptions != null) {
+		vm.checkIsEmpty = serverListOptions.checkIsEmpty
+		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
+		vm.checkIsNotFull = serverListOptions.checkIsNotFull
+		vm.checkModSlider = serverListOptions.checkModSlider
+		vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
+		vm.selectMap = serverListOptions.selectMap
+		vm.serverVersions = serverListOptions.serverVersions
+		vm.tags = serverListOptions.tags
+		vm.searchText = ""
+	} else {
+		vm.checkIsEmpty = false
+		vm.checkIsNotEmpty = false
+		vm.checkIsNotFull = false
+		vm.checkModSlider = false
+		vm.sliderMaxModSize = 500 // in MB
+		vm.selectMap = "Any map"
+		vm.serverVersions = []
+		vm.tags = []
+		vm.searchText = ""
+	}
 
 	// Resize the server list
 	setServersTableHeight();
