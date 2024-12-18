@@ -25,7 +25,7 @@
 		<span id="FiltersPrefix" style="display: none; font-weight: bold; align-self: center;">{{:: 'ui.multiplayer.activeFilters' | translate}}</span>
 		<span id="activeFilters" style="align-self: center; padding-left: 10px;"></span>
 	
-		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay()">
+		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay(); multiplayermenu.repopulate();">
 			<div class="filter-body" ng-click="$event.stopPropagation();">
 				<h2>{{:: 'ui.multiplayer.filterOptions' | translate}}</h2>
 	
@@ -179,7 +179,3 @@
 		<span id="TEMPNODE" style="display:none;"></span>
 	</div>
 </md-content>
-
-<script>
-
-</script>

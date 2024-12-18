@@ -1305,7 +1305,7 @@ function addRecent(server, isUpdate) { // has to have name, ip, port
 	if(!isUpdate) localStorage.setItem("recents", JSON.stringify(recents));
 }
 
-function openExternalLink(url){
+globalThis.openExternalLink = function(url){
 	bngApi.engineLua(`MPCoreNetwork.openURL("`+url+`")`);
 }
 
@@ -1570,7 +1570,7 @@ async function isLauncherConnected() {
 }
 
 var reverse = -1;
-function sortTable(sortType, isNumber, dir) {
+globalThis.sortTable = function(sortType, isNumber, dir) {
 	if (dir) reverse = dir;
 	var table = document.getElementById("serversTable");
     var tb = table.tBodies[0], tr = Array.prototype.slice.call(tb.rows, 0);
