@@ -24,6 +24,10 @@ var beammpMetrics = {
 	beammpGameVer: "...",
 	beammpLauncherVer: "..."
 }
+var serverView = "";
+let repopulateServerList = async function() {
+
+};
 
 export default angular.module('multiplayer', ['ui.router'])
 
@@ -425,11 +429,51 @@ function($scope, $state, $timeout, $document) {
 /* //////////////////////////////////////////////////////////////////////////////////////////////
 *	MAIN CONTROLLER
 */ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerController', ['$scope', '$state', '$timeout', '$mdDialog', '$filter', 'ConfirmationDialog', 'toastr', 
-function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toastr) {
+.controller('MultiplayerController', ['$scope', '$state', '$timeout', '$mdDialog', '$filter', 'ConfirmationDialog', 'toastr', '$translate',
+function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toastr, $translate) {
 	var vm = this;
 	bngApi = bngApi;
 	mdDialog = $mdDialog;
+
+	$scope.switchServerView = function(view) {
+		serverView = view;
+		$state.go('menu.multiplayer.servers');
+		repopulateServerList();
+
+		var buttons = document.getElementsByClassName("servers-btn");
+		for (var i = 0; i < buttons.length; i++) {
+			buttons[i].classList.remove("md-primary");
+			buttons[i].classList.remove("md-raised");
+		}
+		document.getElementById(view+"-servers-btn").classList.add("md-primary");
+		document.getElementById(view+"-servers-btn").classList.add("md-raised");
+
+		if (view == "recents") {
+			$translate('ui.multiplayer.clearRecent').then(function (translation) {
+				var extra = document.getElementById("extra-button");
+
+				extra.style.display = "";
+				extra.innerText = translation;
+
+				extra.onclick = function() {
+					vm.clearRecents();
+				};
+			});
+		} else if (view == "favorites") {
+			$translate('ui.multiplayer.addCustomServer').then(function (translation) {
+				var extra = document.getElementById("extra-button");
+
+				extra.style.display = "";
+				extra.innerText = translation;
+
+				extra.onclick = function() {
+					vm.showCustomServer();
+				};
+			});
+		} else {
+			document.getElementById("extra-button").style.display = "none";
+		}
+	}
 
 	// Trigger Warning Prompt
 	$scope.$on('DownloadSecurityPrompt', function (event, data) {
@@ -552,7 +596,7 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 	};
 
 	vm.showCustomServer = function() {
-		document.getElementById('addCustomFav').style.display = 'block';
+		document.getElementById('addCustomFav').style.display = 'flex';
 	};
 
 	vm.addCustomServer = async function() {
@@ -670,6 +714,11 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 					bngApi.engineLua(`setClipboard("`+data.id+`")`);
 					toastr.info("Copied ID to clipboard")
 				}
+				if (data.role != "USER") {
+					idElement.style.marginTop = "0"
+				} else {
+					idElement.style.marginTop = "6px"
+				}
 			} else {
 				idElement.textContent = "";
 				nameElement.onclick = null;
@@ -701,128 +750,39 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 }])
 
 
-
-/* //////////////////////////////////////////////////////////////////////////////////////////////
-*	OFFICIAL TAB
-*/ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerOfficialController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
-
-	var vm = this;
-	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
-
-	if (serverListOptions != null) {
-		vm.checkIsEmpty = serverListOptions.checkIsEmpty
-		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
-		vm.checkIsNotFull = serverListOptions.checkIsNotFull
-		vm.checkModSlider = serverListOptions.checkModSlider
-		vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
-		vm.selectMap = serverListOptions.selectMap
-		vm.searchText = ""
-	} else {
-		vm.checkIsEmpty = false
-		vm.checkIsNotEmpty = false
-		vm.checkIsNotFull = false
-		vm.checkModSlider = false
-		vm.sliderMaxModSize = 500 // in MB
-		vm.selectMap = "Any"
-		vm.searchText = ""
-	}
-	
-	// Resize the server list
-	setServersTableHeight();
-
-	bngApi.engineLua('MPCoreNetwork.requestServerList()');
-
-	// Go back to the main menu on exit
-	vm.exit = function ($event) {
-		if ($event) console.log('[MultiplayerOfficialController] exiting by keypress event %o', $event);
-		$state.go('menu.mainmenu');
-	};
-
-	// Page loading timeout
-	var timeOut = $timeout(function() {
-		if (vm.loadingPage === true) {
-			vm.loadTimeout = true;
-		}
-	}, 10000);
-
-	// Called when the page is left
-	$scope.$on('$destroy', function () {
-		$timeout.cancel(timeOut);
-		//console.log('[MultiplayerOfficialController] destroyed.');
-	});
-	
-	$scope.$on('onServerListReceived', async function (event, data) {
-		servers = await receiveServers(data);
-		official = await getOfficial();
-		vm.repopulate();
-	});
-	
-	vm.repopulate = async function() {
-		if (serverListOptions != null) {
-			if (serverListOptions.checkIsEmpty && vm.checkIsNotEmpty) vm.checkIsEmpty = false;
-			if (serverListOptions.checkIsNotEmpty && vm.checkIsEmpty) vm.checkIsNotEmpty = false;
-		}
-
-		vm.availableMaps = await populateTable(
-			document.getElementById("serversTableBody"),
-			official,
-			4, // Servers = 0, Favorites = 1, Recent = 2, Featured = 3, Official = 4
-			vm.searchText,
-			vm.checkIsEmpty,
-			vm.checkIsNotEmpty,
-			vm.checkIsNotFull,
-			vm.checkModSlider,
-			vm.sliderMaxModSize,
-			vm.selectMap,
-			bngApi
-		);
-		serverListOptions = {
-			checkIsEmpty : vm.checkIsEmpty,
-			checkIsNotEmpty : vm.checkIsNotEmpty,
-			checkIsNotFull : vm.checkIsNotFull,
-			checkModSlider : vm.checkModSlider,
-			sliderMaxModSize : vm.sliderMaxModSize,
-			selectMap : vm.selectMap,
-		};
-		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
-	};
-
-	vm.repopulate();
-}])
-
-
-
 /* //////////////////////////////////////////////////////////////////////////////////////////////
 *	SERVERS TAB
 */ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerServersController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
+.controller('MultiplayerServersController', ['$scope', '$state', '$timeout', '$filter',
+function($scope, $state, $timeout, $filter) {
 
 	var vm = this;
 	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
 
 	if (serverListOptions)
 
-	if (serverListOptions != null) {
-		vm.checkIsEmpty = serverListOptions.checkIsEmpty
-		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
-		vm.checkIsNotFull = serverListOptions.checkIsNotFull
-		vm.checkModSlider = serverListOptions.checkModSlider
-		vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
-		vm.selectMap = serverListOptions.selectMap
-		vm.searchText = ""
-	} else {
-		vm.checkIsEmpty = false
-		vm.checkIsNotEmpty = false
-		vm.checkIsNotFull = false
-		vm.checkModSlider = false
-		vm.sliderMaxModSize = 500 // in MB
-		vm.selectMap = "Any"
-		vm.searchText = ""
-	}
-	
+		if (serverListOptions != null) {
+			vm.checkIsEmpty = serverListOptions.checkIsEmpty
+			vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
+			vm.checkIsNotFull = serverListOptions.checkIsNotFull
+			vm.checkModSlider = serverListOptions.checkModSlider
+			vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
+			vm.selectMap = serverListOptions.selectMap
+			vm.serverVersions = serverListOptions.serverVersions
+			vm.tags = serverListOptions.tags
+			vm.searchText = ""
+		} else {
+			vm.checkIsEmpty = false
+			vm.checkIsNotEmpty = false
+			vm.checkIsNotFull = false
+			vm.checkModSlider = false
+			vm.sliderMaxModSize = 500 // in MB
+			vm.selectMap = "Any map"
+			vm.serverVersions = []
+			vm.tags = []
+			vm.searchText = ""
+		}
+
 	// Resize the server list
 	setServersTableHeight();
 
@@ -835,7 +795,7 @@ function($scope, $state, $timeout) {
 	};
 
 	// Page loading timeout
-	var timeOut = $timeout(function() {
+	var timeOut = $timeout(function () {
 		if (vm.loadingPage === true) {
 			vm.loadTimeout = true;
 		}
@@ -845,323 +805,56 @@ function($scope, $state, $timeout) {
 	$scope.$on('$destroy', function () {
 		$timeout.cancel(timeOut);
 		//console.log('[MultiplayerServersController] destroyed.');
-	});
-	
-	$scope.$on('onServerListReceived', async function (event, data) {
-		servers = await receiveServers(data);
-		vm.repopulate();
-	});
-	
-	vm.repopulate = async function() {
-		if (serverListOptions != null) {
-			if (serverListOptions.checkIsEmpty && vm.checkIsNotEmpty) vm.checkIsEmpty = false;
-			if (serverListOptions.checkIsNotEmpty && vm.checkIsEmpty) vm.checkIsNotEmpty = false;
+		var buttons = document.getElementsByClassName("servers-btn");
+		for (var i = 0; i < buttons.length; i++) {
+			buttons[i].classList.remove("md-primary");
+			buttons[i].classList.remove("md-raised");
 		}
-
-		vm.availableMaps = await populateTable(
-			document.getElementById("serversTableBody"),
-			servers,
-			0, // Favorite, Recent or Servers tab
-			vm.searchText,
-			vm.checkIsEmpty,
-			vm.checkIsNotEmpty,
-			vm.checkIsNotFull,
-			vm.checkModSlider,
-			vm.sliderMaxModSize,
-			vm.selectMap,
-			bngApi
-		);
-
-		serverListOptions = {
-			checkIsEmpty : vm.checkIsEmpty,
-			checkIsNotEmpty : vm.checkIsNotEmpty,
-			checkIsNotFull : vm.checkIsNotFull,
-			checkModSlider : vm.checkModSlider,
-			sliderMaxModSize : vm.sliderMaxModSize,
-			selectMap : vm.selectMap,
-		};
-		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
-	};
-}])
-
-
-
-/* //////////////////////////////////////////////////////////////////////////////////////////////
-*	FEATURED TAB
-*/ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerFeaturedController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
-
-	var vm = this;
-	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
-
-	if (serverListOptions != null) {
-		vm.checkIsEmpty = serverListOptions.checkIsEmpty
-		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
-		vm.checkIsNotFull = serverListOptions.checkIsNotFull
-		vm.checkModSlider = serverListOptions.checkModSlider
-		vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
-		vm.selectMap = serverListOptions.selectMap
-		vm.searchText = ""
-	} else {
-		vm.checkIsEmpty = false
-		vm.checkIsNotEmpty = false
-		vm.checkIsNotFull = false
-		vm.checkModSlider = false
-		vm.sliderMaxModSize = 500 // in MB
-		vm.selectMap = "Any"
-		vm.searchText = ""
-	}
-	
-	// Resize the server list
-	setServersTableHeight();
-
-	bngApi.engineLua('MPCoreNetwork.requestServerList()');
-
-	// Go back to the main menu on exit
-	vm.exit = function ($event) {
-		if ($event) console.log('[MultiplayerFeaturedController] exiting by keypress event %o', $event);
-		$state.go('menu.mainmenu');
-	};
-
-	// Page loading timeout
-	var timeOut = $timeout(function() {
-		if (vm.loadingPage === true) {
-			vm.loadTimeout = true;
-		}
-	}, 10000);
-
-	// Called when the page is left
-	$scope.$on('$destroy', function () {
-		$timeout.cancel(timeOut);
-		//console.log('[MultiplayerFeaturedController] destroyed.');
 	});
 	
-	$scope.$on('onServerListReceived', async function (event, data) {
-		servers = await receiveServers(data);
-		featured = await getFeatured();
-		//console.log(featured)
-		vm.repopulate();
-	});
-	
-	vm.repopulate = async function() {
-		if (serverListOptions != null) {
-			if (serverListOptions.checkIsEmpty && vm.checkIsNotEmpty) vm.checkIsEmpty = false;
-			if (serverListOptions.checkIsNotEmpty && vm.checkIsEmpty) vm.checkIsNotEmpty = false;
-		}
-
-		vm.availableMaps = await populateTable(
-			document.getElementById("serversTableBody"),
-			featured,
-			3, // Servers = 0, Favorites = 1, Recent = 2, Featured = 3
-			vm.searchText,
-			vm.checkIsEmpty,
-			vm.checkIsNotEmpty,
-			vm.checkIsNotFull,
-			vm.checkModSlider,
-			vm.sliderMaxModSize,
-			vm.selectMap,
-			bngApi
-		);
-		serverListOptions = {
-			checkIsEmpty : vm.checkIsEmpty,
-			checkIsNotEmpty : vm.checkIsNotEmpty,
-			checkIsNotFull : vm.checkIsNotFull,
-			checkModSlider : vm.checkModSlider,
-			sliderMaxModSize : vm.sliderMaxModSize,
-			selectMap : vm.selectMap,
-		};
-		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
-	};
-}])
-
-
-
-/* //////////////////////////////////////////////////////////////////////////////////////////////
-*	PARTNER TAB
-*/ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerPartnerController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
-
-	var vm = this;
-	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
-
-	if (serverListOptions != null) {
-		vm.checkIsEmpty = serverListOptions.checkIsEmpty
-		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
-		vm.checkIsNotFull = serverListOptions.checkIsNotFull
-		vm.checkModSlider = serverListOptions.checkModSlider
-		vm.sliderMaxModSize = serverListOptions.sliderMaxModSize
-		vm.selectMap = serverListOptions.selectMap
-		vm.searchText = ""
-	} else {
-		vm.checkIsEmpty = false
-		vm.checkIsNotEmpty = false
-		vm.checkIsNotFull = false
-		vm.checkModSlider = false
-		vm.sliderMaxModSize = 500 // in MB
-		vm.selectMap = "Any"
-		vm.searchText = ""
-	}
-	
-	// Resize the server list
-	setServersTableHeight();
-
-	bngApi.engineLua('MPCoreNetwork.requestServerList()');
-
-	// Go back to the main menu on exit
-	vm.exit = function ($event) {
-		if ($event) console.log('[MultiplayerPartnerController] exiting by keypress event %o', $event);
-		$state.go('menu.mainmenu');
-	};
-
-	// Page loading timeout
-	var timeOut = $timeout(function() {
-		if (vm.loadingPage === true) {
-			vm.loadTimeout = true;
-		}
-	}, 10000);
-
-	// Called when the page is left
-	$scope.$on('$destroy', function () {
-		$timeout.cancel(timeOut);
-		//console.log('[MultiplayerPartnerController] destroyed.');
-	});
-	
-	$scope.$on('onServerListReceived', async function (event, data) {
-		servers = await receiveServers(data);
-		partner = await getPartner();
-		//console.log(partner)
-		vm.repopulate();
-	});
-	
-	vm.repopulate = async function() {
-		if (serverListOptions != null) {
-			if (serverListOptions.checkIsEmpty && vm.checkIsNotEmpty) vm.checkIsEmpty = false;
-			if (serverListOptions.checkIsNotEmpty && vm.checkIsEmpty) vm.checkIsNotEmpty = false;
-		}
-
-		vm.availableMaps = await populateTable(
-			document.getElementById("serversTableBody"),
-			partner,
-			4, // Servers = 0, Favorites = 1, Recent = 2, Featured = 3, Partner = 4
-			vm.searchText,
-			vm.checkIsEmpty,
-			vm.checkIsNotEmpty,
-			vm.checkIsNotFull,
-			vm.checkModSlider,
-			vm.sliderMaxModSize,
-			vm.selectMap,
-			bngApi
-		);
-		serverListOptions = {
-			checkIsEmpty : vm.checkIsEmpty,
-			checkIsNotEmpty : vm.checkIsNotEmpty,
-			checkIsNotFull : vm.checkIsNotFull,
-			checkModSlider : vm.checkModSlider,
-			sliderMaxModSize : vm.sliderMaxModSize,
-			selectMap : vm.selectMap,
-		};
-		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
-	};
-}])
-
-
-
-/* //////////////////////////////////////////////////////////////////////////////////////////////
-*	RECENT TAB
-*/ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerRecentController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
-	var vm = this;
-	
-	// Resize the server list
-	setServersTableHeight();
-	
-	vm.searchText = "";
-
-	bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()'); // request cached server lsit
 	$scope.$on('onServerListReceived', async function (event, data) {
 		servers = await receiveServers(data);
 		recents = await getRecents();
-		vm.repopulate();
-	});
-
-	vm.repopulate = async function() {
-		vm.availableMaps = await populateTable(
-			document.getElementById("serversTableBody"),
-			servers,
-			2, // Favorite, Recent or Servers tab
-			vm.searchText,
-			false,
-			false,
-			false,
-			false,
-			500,
-			"Any",
-			bngApi
-		);
-	};
-
-	// When controller is unloaded
-	vm.exit = function ($event) {
-		if ($event)
-		console.log('[MultiplayerRecentController] exiting by keypress event %o', $event);
-		$state.go('menu.mainmenu');
-	};
-
-	// Page loading timeout prevention
-	var timeOut = $timeout(function() {
-		if (vm.loadingPage === true) {
-			vm.loadTimeout = true;
-		}
-	}, 10000);
-
-	// When page is unloaded
-	$scope.$on('$destroy', function () {
-		$timeout.cancel(timeOut);
-		//console.log('[MultiplayerRecentController] destroyed.');
-	});
-}])
-
-
-
-/* //////////////////////////////////////////////////////////////////////////////////////////////
-*	FAVORITE TAB
-*/ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerFavoritesController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
-	var vm = this;
-
-	vm.checkIsEmpty = false;
-	vm.checkIsNotEmpty = false;
-	vm.checkIsNotFull = false;
-	vm.checkModSlider = false;
-	vm.sliderMaxModSize = 500; // in MB
-	vm.selectMap = "Any";
-	vm.searchText = "";
-	bngApi.engineLua('MPCoreNetwork.sendBeamMPInfo()'); // request cached server list
-	
-	// Resize the server list
-	setServersTableHeight();
-
-	vm.exit = function ($event) {
-		if ($event)
-		console.log('[MultiplayerServersController] exiting by keypress event %o', $event);
-		$state.go('menu.mainmenu');
-	};
-
-	$scope.$on('onServerListReceived', async function (event, data) {
-		servers = await receiveServers(data);
 		favorites = await getFavorites();
+
+		vm.availableServerVersions = [];
+		vm.availableMaps = [];
+		vm.availableTags = [];
+
+		for (const server of servers) {
+			if (!vm.availableServerVersions.includes("v" + server.version)) vm.availableServerVersions.push("v" + server.version);
+
+			var smoothMapName = SmoothMapName(server.map);
+
+			if(!vm.availableMaps.includes(smoothMapName)) vm.availableMaps.push(smoothMapName);
+
+			var serverTags = server.tags.split(",");
+			for (const tag of serverTags) {
+				if (!vm.availableTags.includes(tag.trim())) vm.availableTags.push(tag.trim());	
+			}
+		}
+
+		
+		vm.availableMaps.sort();
+		vm.availableMaps.unshift("Any map");
+
+		vm.availableServerVersions.sort();
+		
+		vm.availableTags.sort();
+
 		vm.repopulate();
 	});
 
-	vm.repopulate = async function() {
-		vm.availableMaps = await populateTable(
+	vm.repopulate = async function () {
+		if (serverListOptions != null) {
+			if (serverListOptions.checkIsEmpty && vm.checkIsNotEmpty) vm.checkIsEmpty = false;
+			if (serverListOptions.checkIsNotEmpty && vm.checkIsEmpty) vm.checkIsNotEmpty = false;
+		}
+
+		await populateTable(
 			document.getElementById("serversTableBody"),
 			servers,
-			1, // Favorite, Recent or Servers tab
+			serverView,
 			vm.searchText,
 			vm.checkIsEmpty,
 			vm.checkIsNotEmpty,
@@ -1169,26 +862,68 @@ function($scope, $state, $timeout) {
 			vm.checkModSlider,
 			vm.sliderMaxModSize,
 			vm.selectMap,
+			vm.serverVersions,
+			vm.tags,
 			bngApi
 		);
+
+		serverListOptions = {
+			checkIsEmpty: vm.checkIsEmpty,
+			checkIsNotEmpty: vm.checkIsNotEmpty,
+			checkIsNotFull: vm.checkIsNotFull,
+			checkModSlider: vm.checkModSlider,
+			sliderMaxModSize: vm.sliderMaxModSize,
+			selectMap: vm.selectMap,
+			serverVersions: vm.serverVersions,
+			tags: vm.tags
+		};
+
+		var activeFiltersText = "";
+		if (vm.checkIsEmpty) activeFiltersText += $filter('translate')('ui.multiplayer.filters.empty') + ", ";
+		if (vm.checkIsNotEmpty) activeFiltersText += $filter('translate')('ui.multiplayer.filters.notEmpty') + ", ";
+		if (vm.checkIsNotFull) activeFiltersText += $filter('translate')('ui.multiplayer.filters.notFull') + ", ";
+		if (vm.checkModSlider) activeFiltersText += $filter('translate')('ui.multiplayer.filters.modSize') + " < " + vm.sliderMaxModSize + "MB, ";
+		if (vm.selectMap != "Any map") activeFiltersText += $filter('translate')('ui.multiplayer.filters.map') + ": " + vm.selectMap + ", ";
+		if (vm.serverVersions.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.serverVersions') + vm.serverVersions.join(", ") + ", ";
+		if (vm.tags.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.tags') + vm.tags.join(", ") + ", ";
+
+		var clearFiltersButton = document.getElementById("clearFiltersButton");
+		//var FiltersPrefix = document.getElementById("FiltersPrefix");
+
+		if (activeFiltersText.length > 0) { 
+			activeFiltersText = activeFiltersText.slice(0, -2);
+			clearFiltersButton.style.display = "block"; 
+			//FiltersPrefix.style.display = "block";
+		} else {
+			clearFiltersButton.style.display = "none";
+			//FiltersPrefix.style.display = "none";
+		}
+
+		document.getElementById("activeFilters").innerText = activeFiltersText
+
+		localStorage.setItem("serverListOptions", JSON.stringify(serverListOptions));
 	};
 
-	var timeOut = $timeout(function() {
-		if (vm.loadingPage === true) {
-			vm.loadTimeout = true;
-		}
-	}, 10000);
 
-	$scope.$on('$destroy', function () {
-		$timeout.cancel(timeOut);
-		//console.log('[MultiplayerServersController] destroyed.');
-	});
+	$scope.isFilterOverlayVisible = false;
 
-	function setColor(row) {
-		// If odd gray / If even lightgray
-		if (row.rowIndex % 2 == 0) row.style.backgroundColor = "white";
-		else row.style.backgroundColor = "#f2f2f2";
+	$scope.toggleFilterOverlay = function () {
+		$scope.isFilterOverlayVisible = !$scope.isFilterOverlayVisible;
+	};
+
+	$scope.clearFilters = function () {
+		vm.checkIsEmpty = false;
+		vm.checkIsNotEmpty = false;
+		vm.checkIsNotFull = false;
+		vm.checkModSlider = false;
+		vm.sliderMaxModSize = 500;
+		vm.selectMap = "Any map";
+		vm.serverVersions = [];
+		vm.tags = [];
+		vm.repopulate();
 	}
+
+	repopulateServerList = function () { vm.repopulate().then(() => { }); }
 }])
 
 
@@ -1518,52 +1253,6 @@ function stripCustomFormatting(name){
 	return name;
 }
 
-async function getOfficial() {
-	return new Promise(function(resolve, reject) {
-		var _official = []
-		servers.forEach(server => {
-			if (server.official === true || server.approved === true) {
-				_official.push(server)
-			}
-		});
-		
-		official = _official
-		
-		resolve(_official || []);
-	});
-}
-
-async function getFeatured() {
-	return new Promise(function(resolve, reject) {
-		var feat = []
-		servers.forEach(server => {
-			//console.log(server)
-			if (server.featured === true) {
-				feat.push(server)
-			}
-		});
-		
-		featured = feat
-		
-		resolve(feat || []);
-	});
-}
-
-async function getPartner() {
-	return new Promise(function(resolve, reject) {
-		var part = []
-		servers.forEach(server => {
-			if (server.partner === true) {
-				part.push(server)
-			}
-		});
-		
-		partner = part
-		
-		resolve(part || []);
-	});
-}
-
 async function getFavorites() {
 	return new Promise(function(resolve, reject) {
 		bngApi.engineLua("MPConfig.getFavorites()", (data) => {
@@ -1612,11 +1301,11 @@ function getRecents() {
 function addRecent(server, isUpdate) { // has to have name, ip, port
 	server.addTime = Date.now();
 	recents.push(server);
-	recents = recents.slice(-1 * 30); //keep the last 30 entries
+	recents = recents.slice(-1 * 50); //keep the last 50 entries
 	if(!isUpdate) localStorage.setItem("recents", JSON.stringify(recents));
 }
 
-function openExternalLink(url){
+globalThis.openExternalLink = function(url){
 	bngApi.engineLua(`MPCoreNetwork.openURL("`+url+`")`);
 }
 
@@ -1680,14 +1369,33 @@ function createRow(table, server, bgcolor, bngApi, isFavorite, isRecent, sname) 
 }
 
 // /!\ IMPORTANT /!\ //// TYPE 0 = Normal / 1 = Favorites / 2 = Recents
-async function populateTable(tableTbody, servers, type, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any', bngApi) {
+async function populateTable(tableTbody, servers, tab, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any map', SelectedServerVersions = [], tags = [], bngApi) {
 	var newTbody = document.createElement('tbody');
 	newTbody.id = "serversTableBody";
-	var mapNames = new Array(); //["Any"];
+
+	var type = 0
+	if (tab == "favorites") type = 1;
+	else if (tab == "recents") type = 2;
+
 	for (const server of servers) {
 		if (!server) {
 			break;
 		}
+
+		if (tab == "official" && !server.official) continue;
+		if (tab == "featured" && !server.featured) continue;
+		if (tab == "partner" && !server.partner) continue;
+
+		//server.tags = "tag1,tag2"
+		var serverTags = server.tags.toLowerCase().split(",").map(tag => tag.trim());
+
+		var missingTag = false;
+		for (let tag of tags) {
+			if (!serverTags.includes(tag.toLowerCase())) missingTag = true;
+		}
+
+		if (missingTag) continue;
+
 		var shown = true;
 		var smoothMapName = SmoothMapName(server.map);
 		var isFavorite = false;
@@ -1705,10 +1413,9 @@ async function populateTable(tableTbody, servers, type, searchText = '', checkIs
 		else if(checkModSlider && sliderMaxModSize * 1048576 < server.modstotalsize) continue;
 	
 		// Filter by map
-		else if((selectMap != "Any" && selectMap != smoothMapName)) continue;
+		else if((selectMap != "Any map" && selectMap != smoothMapName)) continue;
 
-		// Add the maps to the combobox on the UI
-		if(!mapNames.includes(smoothMapName)) mapNames.push(smoothMapName);
+		else if (SelectedServerVersions.length > 0 && !SelectedServerVersions.includes("v" + server.version)) continue;
 
 		// Favorite
 		for (let tmpServer of favorites) if (tmpServer.ip == server.ip && tmpServer.port == server.port) isFavorite = tmpServer.addTime;
@@ -1748,10 +1455,7 @@ async function populateTable(tableTbody, servers, type, searchText = '', checkIs
 		}
 	}
 	tableTbody.parentNode.replaceChild(newTbody, tableTbody);
-	mapNames.sort(); // Sort the maps by name
-	mapNames.unshift("Any"); // Set Any to the beginning
 	if (type == 2) sortTable("recent", true, -1);
-	return mapNames; // Set the list of available maps
 }
 
 // Used to connect to the backend with ids
@@ -1866,7 +1570,7 @@ async function isLauncherConnected() {
 }
 
 var reverse = -1;
-function sortTable(sortType, isNumber, dir) {
+globalThis.sortTable = function(sortType, isNumber, dir) {
 	if (dir) reverse = dir;
 	var table = document.getElementById("serversTable");
     var tb = table.tBodies[0], tr = Array.prototype.slice.call(tb.rows, 0);

@@ -121,6 +121,7 @@
     "ui.multiplayer.notFull": "Not full",
     "ui.multiplayer.notFullTooltip": "Only show not full servers",
     "ui.multiplayer.mapFilterTooltip": "Enable map filter",
+    "ui.multiplayer.serverVersionFilterTooltip": "Enable server version filter",
     "ui.multiplayer.modSlider": "Mod size limiter",
     "ui.multiplayer.modSliderTooltip": "Enable mod size limiter",
     "ui.multiplayer.clearRecent": "Clear Recents",
@@ -161,5 +162,17 @@
     "ui.multiplayer.patreon.message.ea": "Thank you for supporting BeamMP!",
     "ui.multiplayer.patreon.button.ea": "Perks",
     "ui.multiplayer.patreon.popup.user": "Support BeamMP on Patreon",
-    "ui.multiplayer.patreon.popup.ea": "Thank you for supporting BeamMP!"
+    "ui.multiplayer.patreon.popup.ea": "Thank you for supporting BeamMP!",
+    "ui.multiplayer.filterOptions": "Filter Options",
+    "ui.multiplayer.clearFilters": "Clear Filters",
+    "ui.multiplayer.openFilters": "Open Filters",
+    "ui.multiplayer.activeFilters": "Active Filters: ",
+    "ui.multiplayer.filters.empty": "Empty",
+    "ui.multiplayer.filters.notEmpty": "Not empty",
+    "ui.multiplayer.filters.notFull": "Not full",
+    "ui.multiplayer.filters.modSize": "Mod size",
+    "ui.multiplayer.filters.map": "Map",
+    "ui.multiplayer.filters.serverVersions": "Server Version(s): ",
+    "ui.multiplayer.filters.tags": "Tags: ",
+    "ui.multiplayer.tagFilterTooltip": "Filter by tags"
 }
