@@ -753,8 +753,8 @@ function($scope, $state, $timeout, $mdDialog, $filter, ConfirmationDialog, toast
 /* //////////////////////////////////////////////////////////////////////////////////////////////
 *	SERVERS TAB
 */ //////////////////////////////////////////////////////////////////////////////////////////////
-.controller('MultiplayerServersController', ['$scope', '$state', '$timeout', 
-function($scope, $state, $timeout) {
+.controller('MultiplayerServersController', ['$scope', '$state', '$timeout', '$filter',
+function($scope, $state, $timeout, $filter) {
 
 	var vm = this;
 	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
@@ -879,13 +879,13 @@ function($scope, $state, $timeout) {
 		};
 
 		var activeFiltersText = "";
-		if (vm.checkIsEmpty) activeFiltersText += "Empty, ";
-		if (vm.checkIsNotEmpty) activeFiltersText += "Not empty, ";
-		if (vm.checkIsNotFull) activeFiltersText += "Not full, ";
-		if (vm.checkModSlider) activeFiltersText += "Mod size < " + vm.sliderMaxModSize + "MB, ";
-		if (vm.selectMap != "Any map") activeFiltersText += "Map: " + vm.selectMap + ", ";
-		if (vm.serverVersions.length > 0) activeFiltersText += "Server Version(s)" + vm.serverVersions.join(", ") + ", ";
-		if (vm.tags.length > 0) activeFiltersText += "Tags(s): " + vm.tags.join(", ") + ", ";
+		if (vm.checkIsEmpty) activeFiltersText += $filter('translate')('ui.multiplayer.filters.empty') + ", ";
+		if (vm.checkIsNotEmpty) activeFiltersText += $filter('translate')('ui.multiplayer.filters.notEmpty') + ", ";
+		if (vm.checkIsNotFull) activeFiltersText += $filter('translate')('ui.multiplayer.filters.notFull') + ", ";
+		if (vm.checkModSlider) activeFiltersText += $filter('translate')('ui.multiplayer.filters.modSize') + " < " + vm.sliderMaxModSize + "MB, ";
+		if (vm.selectMap != "Any map") activeFiltersText += $filter('translate')('ui.multiplayer.filters.map') + ": " + vm.selectMap + ", ";
+		if (vm.serverVersions.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.serverVersions') + vm.serverVersions.join(", ") + ", ";
+		if (vm.tags.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.tags') + vm.tags.join(", ") + ", ";
 
 		var clearFiltersButton = document.getElementById("clearFiltersButton");
 		//var FiltersPrefix = document.getElementById("FiltersPrefix");

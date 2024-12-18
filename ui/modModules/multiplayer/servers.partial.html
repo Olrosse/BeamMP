@@ -9,7 +9,7 @@
 	
 		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
 			ng-click="toggleFilterOverlay()">
-			<span style="margin-right: 10px">Open Filters</span>
+			<span style="margin-right: 10px">{{:: 'ui.multiplayer.openFilters' | translate}}</span>
 			<md-icon style="margin: 0;">filter_list</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.openFilters' | translate}}</md-tooltip>
 		</md-button>
@@ -17,12 +17,12 @@
 		<md-button class="button servers-button" style="display: none; justify-content: center; width: 200px;"
 			id="clearFiltersButton"
 			ng-click="clearFilters()">
-			<span style="margin-right: 10px">Clear Filters</span>
+			<span style="margin-right: 10px">{{:: 'ui.multiplayer.clearFilters' | translate}}</span>
 			<md-icon style="margin: 0; vertical-align: middle;">clear</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
 		</md-button>
 
-		<span id="FiltersPrefix" style="display: none; font-weight: bold; align-self: center;">Active Filters: </span>
+		<span id="FiltersPrefix" style="display: none; font-weight: bold; align-self: center;">{{:: 'ui.multiplayer.activeFilters' | translate}}</span>
 		<span id="activeFilters" style="align-self: center; padding-left: 10px;"></span>
 	
 		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay()">

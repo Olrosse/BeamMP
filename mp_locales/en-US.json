@@ -165,5 +165,14 @@
     "ui.multiplayer.patreon.popup.ea": "Thank you for supporting BeamMP!",
     "ui.multiplayer.filterOptions": "Filter Options",
     "ui.multiplayer.clearFilters": "Clear Filters",
-    "ui.multiplayer.openFilters": "Open Filters"
+    "ui.multiplayer.openFilters": "Open Filters",
+    "ui.multiplayer.activeFilters": "Active Filters: ",
+    "ui.multiplayer.filters.empty": "Empty",
+    "ui.multiplayer.filters.notEmpty": "Not empty",
+    "ui.multiplayer.filters.notFull": "Not full",
+    "ui.multiplayer.filters.modSize": "Mod size",
+    "ui.multiplayer.filters.map": "Map",
+    "ui.multiplayer.filters.serverVersions": "Server Version(s): ",
+    "ui.multiplayer.filters.tags": "Tags: ",
+    "ui.multiplayer.tagFilterTooltip": "Filter by tags"
 }
