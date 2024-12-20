@@ -1,6 +1,6 @@
 {
-  "ui.playmodes.multiplayer": "Multijoueurs",
-  "ui.options.multiplayer": "Multijoueurs",
+  "ui.playmodes.multiplayer": "Multijoueur",
+  "ui.options.multiplayer": "Multijoueur",
   "ui.options.multiplayer.protectConfigFromClone": "Activer la protection contre le clonage de la configuration",
   "ui.options.multiplayer.protectConfigFromClone.tooltip": "Protéger cette configuration contre le clonage par d'autres joueurs.",
   "ui.options.multiplayer.enableNewChatMenu": "Nouveau menu de tchat",
