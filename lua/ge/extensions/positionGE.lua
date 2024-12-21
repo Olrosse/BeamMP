@@ -78,10 +78,14 @@ local function applyPos(decoded, serverVehicleID)
 	local vehicle = MPVehicleGE.getVehicleByServerID(serverVehicleID)
 	if not vehicle then log('E', 'applyPos', 'Could not find vehicle by ID '..serverVehicleID) return end
 
-	local simspeedFraction = 1/simTimeAuthority.getReal()
 
-	for k,v in pairs(decoded.vel) do decoded.vel[k] = v*simspeedFraction end
-	for k,v in pairs(decoded.rvel) do decoded.rvel[k] = v*simspeedFraction end
+	local simspeedFraction = 1
+	local gameSpeed = simTimeAuthority.getReal()
+	if gameSpeed > 0 then
+		simspeedFraction = 1/gameSpeed
+		for k,v in pairs(decoded.vel) do decoded.vel[k] = v*simspeedFraction end
+		for k,v in pairs(decoded.rvel) do decoded.rvel[k] = v*simspeedFraction end
+	end
 
 	decoded.localSimspeed = simspeedFraction
 
