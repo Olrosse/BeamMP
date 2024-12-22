@@ -1003,7 +1003,7 @@ function formatBytes(bytes = 0, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-var serverStyleMap = {
+globalThis.serverStyleMap = {
     '^0': 'color:#000000',
     '^1': 'color:#0000AA',
     '^2': 'color:#00AA00',
