@@ -121,6 +121,7 @@
   "ui.multiplayer.notFull": "Dolu olmayan",
   "ui.multiplayer.notFullTooltip": "Sadece dolu olmayan sunucuları göster",
   "ui.multiplayer.mapFilterTooltip": "Harita filtresini etkinleştir",
+  "ui.multiplayer.serverVersionFilterTooltip": "Sunucu versiyonu filtresini etkinleştir",
   "ui.multiplayer.modSlider": "Mod boyutu sınırlayıcısı",
   "ui.multiplayer.modSliderTooltip": "Mod boyutu sınırlayıcısını etkinleştir",
   "ui.multiplayer.clearRecent": "Son Sunucuları Temizle",
@@ -161,5 +162,17 @@
   "ui.multiplayer.patreon.message.ea": "BeamMP'yi desteklediğiniz için teşekkür ederiz!",
   "ui.multiplayer.patreon.button.ea": "Avantajlar",
   "ui.multiplayer.patreon.popup.user": "Patreon'da BeamMP'yi destekleyin",
-  "ui.multiplayer.patreon.popup.ea": "BeamMP'yi desteklediğiniz için teşekkür ederiz!"
+  "ui.multiplayer.patreon.popup.ea": "BeamMP'yi desteklediğiniz için teşekkür ederiz!",
+  "ui.multiplayer.filterOptions": "Filtre Seçenekleri",
+  "ui.multiplayer.clearFilters": "Filtreleri Temizle",
+  "ui.multiplayer.openFilters": "Filtreleri Aç",
+  "ui.multiplayer.activeFilters": "Aktif Filtreler:",
+  "ui.multiplayer.filters.empty": "Boş",
+  "ui.multiplayer.filters.notEmpty": "Boş değil",
+  "ui.multiplayer.filters.notFull": "Dolu değil",
+  "ui.multiplayer.filters.modSize": "Mod büyüklüğü",
+  "ui.multiplayer.filters.map": "Harita",
+  "ui.multiplayer.filters.serverVersions": "Sunucu Versiyon(ları):",
+  "ui.multiplayer.filters.tags": "Etiketler:",
+  "ui.multiplayer.tagFilterTooltip": "Etiketlere göre filtrele"
 }
