@@ -122,6 +122,7 @@
     "ui.multiplayer.notFullTooltip": "Only show not full servers",
     "ui.multiplayer.mapFilterTooltip": "Enable map filter",
     "ui.multiplayer.serverVersionFilterTooltip": "Enable server version filter",
+    "ui.multiplayer.tagFilterTooltip": "Enable tag filter",
     "ui.multiplayer.serverLocationFilterTooltip": "Enable server location filter",
     "ui.multiplayer.modSlider": "Mod size limiter",
     "ui.multiplayer.modSliderTooltip": "Enable mod size limiter",
@@ -175,6 +176,5 @@
     "ui.multiplayer.filters.map": "Map",
     "ui.multiplayer.filters.serverVersions": "Server Version(s): ",
     "ui.multiplayer.filters.tags": "Tags: ",
-    "ui.multiplayer.tagFilterTooltip": "Filter by tags"
     "ui.multiplayer.filters.serverLocations": "Location(s): "
 }
