@@ -80,6 +80,8 @@ local defaultSettings = {
 
 	disableInstabilityPausing = true,
 
+	refreshIngame = false,
+
 	launcherPort = 4444
 }
 

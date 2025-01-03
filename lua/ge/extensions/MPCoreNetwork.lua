@@ -237,7 +237,7 @@ end
 -- @usage MPCoreNetwork.requestServerList()
 local function requestServerList()
 	if not launcherConnected then return end
-	if isMpSession then
+	if isMpSession and not settings.getValue("refreshIngame") then
 		log('W', 'requestServerList', 'Currently in MP Session! Using cached server list.') --TODO: add UI warning when cached server list is being displayed
 		sendBeamMPInfo()
 		return
