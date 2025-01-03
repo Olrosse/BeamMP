@@ -768,6 +768,7 @@ function($scope, $state, $timeout, $filter) {
 		vm.selectMap = serverListOptions.selectMap
 		vm.serverVersions = serverListOptions.serverVersions
 		vm.tags = serverListOptions.tags
+		vm.serverLocations = serverListOptions.serverLocations
 		vm.searchText = ""
 	} else {
 		vm.checkIsEmpty = false
