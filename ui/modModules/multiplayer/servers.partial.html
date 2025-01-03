@@ -77,6 +77,15 @@
 								{{ tag }}
 							</md-option>
 						</md-select>
+
+						<md-select id="filter-dropdown" ng-model="multiplayermenu.serverLocations" multiple placeholder="All locations" class="md-no-underline dropdown">
+							<md-tooltip md-direction="right">
+								{{:: 'ui.multiplayer.serverLocationFilterTooltip' | translate}}
+							</md-tooltip>
+							<md-option ng-repeat="location in multiplayermenu.availableServerLocations" ng-value="multiplayermenu.availableServerLocations[$index]" style="height: 40px;">
+								<img src="local://local/ui/modModules/multiplayer/flags/{{ location.toLowerCase() }}.png" class="flag" style="margin-right: 5px;" /> {{ location }}
+							</md-option>
+						</md-select>
 					</div>
 
 					<md-checkbox ng-model="multiplayermenu.checkModSlider" style="display: flex; align-items: center;">

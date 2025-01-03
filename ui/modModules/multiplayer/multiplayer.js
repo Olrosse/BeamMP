@@ -759,7 +759,7 @@ function($scope, $state, $timeout, $filter) {
 	var vm = this;
 	let serverListOptions = JSON.parse(localStorage.getItem("serverListOptions"))
 
-	if (serverListOptions != null && serverListOptions.serverVersions != null && serverListOptions.tags != null) {
+	if (serverListOptions != null && serverListOptions.serverVersions != null && serverListOptions.tags != null && serverListOptions.serverLocations != null) {
 		vm.checkIsEmpty = serverListOptions.checkIsEmpty
 		vm.checkIsNotEmpty = serverListOptions.checkIsNotEmpty
 		vm.checkIsNotFull = serverListOptions.checkIsNotFull
@@ -778,6 +778,7 @@ function($scope, $state, $timeout, $filter) {
 		vm.selectMap = "Any map"
 		vm.serverVersions = []
 		vm.tags = []
+		vm.serverLocations = []
 		vm.searchText = ""
 	}
 
@@ -818,9 +819,12 @@ function($scope, $state, $timeout, $filter) {
 		vm.availableServerVersions = [];
 		vm.availableMaps = [];
 		vm.availableTags = [];
+		vm.availableServerLocations = [];
 
 		for (const server of servers) {
 			if (!vm.availableServerVersions.includes("v" + server.version)) vm.availableServerVersions.push("v" + server.version);
+
+			if (!vm.availableServerLocations.includes(server.location)) vm.availableServerLocations.push(server.location);
 
 			var smoothMapName = SmoothMapName(server.map);
 
@@ -837,6 +841,8 @@ function($scope, $state, $timeout, $filter) {
 		vm.availableMaps.unshift("Any map");
 
 		vm.availableServerVersions.sort();
+
+		vm.availableServerLocations.sort();
 		
 		vm.availableTags.sort();
 
@@ -862,6 +868,7 @@ function($scope, $state, $timeout, $filter) {
 			vm.selectMap,
 			vm.serverVersions,
 			vm.tags,
+			vm.serverLocations,
 			bngApi
 		);
 
@@ -873,6 +880,7 @@ function($scope, $state, $timeout, $filter) {
 			sliderMaxModSize: vm.sliderMaxModSize,
 			selectMap: vm.selectMap,
 			serverVersions: vm.serverVersions,
+			serverLocations: vm.serverLocations,
 			tags: vm.tags
 		};
 
@@ -884,6 +892,7 @@ function($scope, $state, $timeout, $filter) {
 		if (vm.selectMap != "Any map") activeFiltersText += $filter('translate')('ui.multiplayer.filters.map') + ": " + vm.selectMap + ", ";
 		if (vm.serverVersions.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.serverVersions') + vm.serverVersions.join(", ") + ", ";
 		if (vm.tags.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.tags') + vm.tags.join(", ") + ", ";
+		if (vm.serverLocations.length > 0) activeFiltersText += $filter('translate')('ui.multiplayer.filters.serverLocations') + vm.serverLocations.join(", ") + ", ";
 
 		var clearFiltersButton = document.getElementById("clearFiltersButton");
 		//var FiltersPrefix = document.getElementById("FiltersPrefix");
@@ -918,6 +927,7 @@ function($scope, $state, $timeout, $filter) {
 		vm.selectMap = "Any map";
 		vm.serverVersions = [];
 		vm.tags = [];
+		vm.serverLocations = [];
 		vm.repopulate();
 	}
 
@@ -1367,7 +1377,7 @@ function createRow(table, server, bgcolor, bngApi, isFavorite, isRecent, sname) 
 }
 
 // /!\ IMPORTANT /!\ //// TYPE 0 = Normal / 1 = Favorites / 2 = Recents
-async function populateTable(tableTbody, servers, tab, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any map', SelectedServerVersions = [], tags = [], bngApi) {
+async function populateTable(tableTbody, servers, tab, searchText = '', checkIsEmpty, checkIsNotEmpty, checkIsNotFull, checkModSlider, sliderMaxModSize, selectMap = 'Any map', SelectedServerVersions = [], tags = [], SelectedServerLocations = [], bngApi) {
 	var newTbody = document.createElement('tbody');
 	newTbody.id = "serversTableBody";
 
@@ -1414,6 +1424,8 @@ async function populateTable(tableTbody, servers, tab, searchText = '', checkIsE
 		else if((selectMap != "Any map" && selectMap != smoothMapName)) continue;
 
 		else if (SelectedServerVersions.length > 0 && !SelectedServerVersions.includes("v" + server.version)) continue;
+
+		else if (SelectedServerLocations.length > 0 && !SelectedServerLocations.includes(server.location)) continue;
 
 		// Favorite
 		for (let tmpServer of favorites) if (tmpServer.ip == server.ip && tmpServer.port == server.port) isFavorite = tmpServer.addTime;
