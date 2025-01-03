@@ -73,8 +73,8 @@
 							<md-tooltip md-direction="right">
 								{{:: 'ui.multiplayer.tagFilterTooltip' | translate}}
 							</md-tooltip>
-							<md-option ng-repeat="version in multiplayermenu.availableTags" ng-value="multiplayermenu.availableTags[$index]" style="height: 40px;">
-								{{ version }}
+							<md-option ng-repeat="tag in multiplayermenu.availableTags" ng-value="multiplayermenu.availableTags[$index]" style="height: 40px;">
+								{{ tag }}
 							</md-option>
 						</md-select>
 					</div>
