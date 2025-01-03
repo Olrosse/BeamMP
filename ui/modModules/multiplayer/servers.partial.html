@@ -1,22 +1,17 @@
 <md-content>
 	<div id="serverListHeader" layout="row" layout-padding="">
-		<input ng-model="multiplayermenu.searchText" ng-change="multiplayermenu.repopulate();" type="text" id="search"
-			name="search" placeholder="Search" />
-		<md-button id="refresh-button" class="button servers-button" ng-class="" ng-click="multiplayer.refreshList()">{{::
-			'ui.multiplayer.refresh' | translate}}</md-button>
-	
+		<input ng-model="multiplayermenu.searchText" ng-change="multiplayermenu.repopulate();" type="text" id="search" name="search" placeholder="Search" />
+		<md-button id="refresh-button" class="button servers-button" ng-class="" ng-click="multiplayer.refreshList()">{{:: 'ui.multiplayer.refresh' | translate}}</md-button>
+
 		<md-button id="extra-button" class="button servers-button" style="display: none;"></md-button>
-	
-		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;"
-			ng-click="toggleFilterOverlay()">
+
+		<md-button class="button servers-button" style="display: flex; justify-content: center; width: 200px;" ng-click="toggleFilterOverlay()">
 			<span style="margin-right: 10px">{{:: 'ui.multiplayer.openFilters' | translate}}</span>
 			<md-icon style="margin: 0;">filter_list</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.openFilters' | translate}}</md-tooltip>
 		</md-button>
 
-		<md-button class="button servers-button" style="display: none; justify-content: center; width: 200px;"
-			id="clearFiltersButton"
-			ng-click="clearFilters()">
+		<md-button class="button servers-button" style="display: none; justify-content: center; width: 200px;" id="clearFiltersButton" ng-click="clearFilters()">
 			<span style="margin-right: 10px">{{:: 'ui.multiplayer.clearFilters' | translate}}</span>
 			<md-icon style="margin: 0; vertical-align: middle;">clear</md-icon>
 			<md-tooltip md-direction="top">{{:: 'ui.multiplayer.clearFilters' | translate}}</md-tooltip>
@@ -24,92 +19,87 @@
 
 		<span id="FiltersPrefix" style="display: none; font-weight: bold; align-self: center;">{{:: 'ui.multiplayer.activeFilters' | translate}}</span>
 		<span id="activeFilters" style="align-self: center; padding-left: 10px;"></span>
-	
+
 		<div class="filter-overlay" ng-show="isFilterOverlayVisible" ng-click="toggleFilterOverlay(); multiplayermenu.repopulate();">
 			<div class="filter-body" ng-click="$event.stopPropagation();">
 				<h2>{{:: 'ui.multiplayer.filterOptions' | translate}}</h2>
-	
-				<md-button class="md-icon-button" style="margin-left: auto;"
-					ng-click="toggleFilterOverlay(); multiplayermenu.repopulate();">
+
+				<md-button class="md-icon-button" style="margin-left: auto;" ng-click="toggleFilterOverlay(); multiplayermenu.repopulate();">
 					<md-icon>close</md-icon>
 				</md-button>
-	
+
 				<div class="filter-content">
-					  <md-checkbox ng-model="multiplayermenu.checkIsEmpty">
+					<md-checkbox ng-model="multiplayermenu.checkIsEmpty">
 						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.emptyOnlyTooltip' | translate}}
+							{{:: 'ui.multiplayer.emptyOnlyTooltip' | translate}}
 						</md-tooltip>
 						{{:: 'ui.multiplayer.emptyOnly' | translate}}
-					  </md-checkbox>
-				  
-					  <md-checkbox ng-model="multiplayermenu.checkIsNotEmpty">
+					</md-checkbox>
+
+					<md-checkbox ng-model="multiplayermenu.checkIsNotEmpty">
 						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.notEmptyTooltip' | translate}}
+							{{:: 'ui.multiplayer.notEmptyTooltip' | translate}}
 						</md-tooltip>
 						{{:: 'ui.multiplayer.notEmpty' | translate}}
-					  </md-checkbox>
-				  
-					  <md-checkbox ng-model="multiplayermenu.checkIsNotFull">
+					</md-checkbox>
+
+					<md-checkbox ng-model="multiplayermenu.checkIsNotFull">
 						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.notFullTooltip' | translate}}
+							{{:: 'ui.multiplayer.notFullTooltip' | translate}}
 						</md-tooltip>
 						{{:: 'ui.multiplayer.notFull' | translate}}
-					  </md-checkbox>
-				  
-					<div class="dropdown-row">
-					  <md-select id="filter-dropdown" ng-model="multiplayermenu.selectMap" placeholder="Any map"
-						class="md-no-underline dropdown">
-						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.mapFilterTooltip' | translate}}
-						</md-tooltip>
-						<md-option ng-repeat="map in multiplayermenu.availableMaps" ng-value="multiplayermenu.availableMaps[$index]" style="height: 40px;">
-						  {{ map }}
-						</md-option>
-					  </md-select>
-				  
-					  <md-select id="filter-dropdown" ng-model="multiplayermenu.serverVersions" multiple placeholder="All versions"
-					class="md-no-underline dropdown">
-					<md-tooltip md-direction="right">
-					  {{:: 'ui.multiplayer.serverVersionFilterTooltip' | translate}}
-					</md-tooltip>
-					<md-option ng-repeat="version in multiplayermenu.availableServerVersions" ng-value="multiplayermenu.availableServerVersions[$index]" style="height: 40px;">
-					  {{ version }}
-					</md-option>
-				  </md-select>
+					</md-checkbox>
 
-					  <md-select id="filter-dropdown" ng-model="multiplayermenu.tags" multiple placeholder="All tags"
-						class="md-no-underline dropdown">
-						<md-tooltip md-direction="right">
-						  {{:: 'ui.multiplayer.tagFilterTooltip' | translate}}
-						</md-tooltip>
-						<md-option ng-repeat="version in multiplayermenu.availableTags" ng-value="multiplayermenu.availableTags[$index]" style="height: 40px;">
-						  {{ version }}
-						</md-option>
-					  </md-select>
+					<div class="dropdown-row">
+						<md-select id="filter-dropdown" ng-model="multiplayermenu.selectMap" placeholder="Any map" class="md-no-underline dropdown">
+							<md-tooltip md-direction="right">
+								{{:: 'ui.multiplayer.mapFilterTooltip' | translate}}
+							</md-tooltip>
+							<md-option ng-repeat="map in multiplayermenu.availableMaps" ng-value="multiplayermenu.availableMaps[$index]" style="height: 40px;">
+								{{ map }}
+							</md-option>
+						</md-select>
+
+						<md-select id="filter-dropdown" ng-model="multiplayermenu.serverVersions" multiple placeholder="All versions" class="md-no-underline dropdown">
+							<md-tooltip md-direction="right">
+								{{:: 'ui.multiplayer.serverVersionFilterTooltip' | translate}}
+							</md-tooltip>
+							<md-option ng-repeat="version in multiplayermenu.availableServerVersions" ng-value="multiplayermenu.availableServerVersions[$index]" style="height: 40px;">
+								{{ version }}
+							</md-option>
+						</md-select>
+
+						<md-select id="filter-dropdown" ng-model="multiplayermenu.tags" multiple placeholder="All tags" class="md-no-underline dropdown">
+							<md-tooltip md-direction="right">
+								{{:: 'ui.multiplayer.tagFilterTooltip' | translate}}
+							</md-tooltip>
+							<md-option ng-repeat="version in multiplayermenu.availableTags" ng-value="multiplayermenu.availableTags[$index]" style="height: 40px;">
+								{{ version }}
+							</md-option>
+						</md-select>
 					</div>
 
 					<md-checkbox ng-model="multiplayermenu.checkModSlider" style="display: flex; align-items: center;">
 						<md-tooltip md-direction="right">
 							{{:: 'ui.multiplayer.modSliderTooltip' | translate}}
 						</md-tooltip>
-					
+
 						<div class="md-label" style="margin-left: 8px;">
 							{{:: 'ui.multiplayer.modSlider' | translate}}
 						</div>
 					</md-checkbox>
-				  
+
 					<div class="md-slider-container" ng-if="multiplayermenu.checkModSlider" style="width: 60%;">
-					  <md-slider flex ng-model="multiplayermenu.sliderMaxModSize" min="0" max="10000" step="50" aria-label="_"></md-slider>
-					  <span style="margin: 0px 15px; padding-top: 13px; color: white;">
-						{{ multiplayermenu.sliderMaxModSize }} MB
-					  </span>
+						<md-slider flex ng-model="multiplayermenu.sliderMaxModSize" min="0" max="10000" step="50" aria-label="_"></md-slider>
+						<span style="margin: 0px 15px; padding-top: 13px; color: white;">
+							{{ multiplayermenu.sliderMaxModSize }} MB
+						</span>
 					</div>
-				  </div>
 				</div>
 			</div>
 		</div>
-		<md-divider></md-divider>
 	</div>
+	<md-divider></md-divider>
 	
 	<div id="serversTableContainer">
 		<table id="serversTable">
