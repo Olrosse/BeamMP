@@ -88,6 +88,8 @@
     "ui.options.multiplayer.experimental": "EXPERIMENTAL",
     "ui.options.multiplayer.leftMouseButton": "Left mouse button",
     "ui.options.multiplayer.rightMouseButton": "Right mouse button",
+    "ui.options.multiplayer.refreshIngame": "Allow the serverlist to refresh ingame",
+    "ui.options.multiplayer.refreshIngame.tooltip": "Wether to allow the serverlist to refresh whilst in a session. Enabling this can cause lag spikes.",
     "ui.multiplayer.multiplayer": "Multiplayer",
     "ui.multiplayer.connecting": "Connecting",
     "ui.multiplayer.connectingToServer": "Connecting to server...",
