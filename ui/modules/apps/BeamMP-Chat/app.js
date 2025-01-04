@@ -393,5 +393,9 @@ function onKeyDown(e) {
 		console.log(e);
 		document.getElementById("chat-input").value = lastSentMessage;
 		e.target.setSelectionRange(lastSentMessage.length, lastSentMessage.length);
+	} else if (e.key === "Enter") {
+		e.preventDefault();
+		e.stopPropagation();
+		document.getElementById("send-button").click();
 	}
 }
