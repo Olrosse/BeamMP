@@ -229,26 +229,20 @@ local function setPositionRotationVelocity(gameVehicleID, positionData) -- this 
 	local pos = positionData.pos
 	local newRot = positionData.rot
 	local vel = positionData.vel
+	local vehVel = positionData.vehVel
 	local rvel = positionData.rvel
 	local veh = be:getObjectByID(gameVehicleID)
-
-	local localVel = veh:getVelocity()
-	local vehVel = positionData.vehVel
-
-	if math.abs(localVel.x) + math.abs(localVel.y) + math.abs(localVel.z) > (math.abs(vehVel.x) + math.abs(vehVel.y) + math.abs(vehVel.z))*5 then -- detect if velocity was a teleport
-		return
-	end
-
+	local vehRot = positionData.vehRot
 	local refNodeID = veh:getRefNodeId()
-	local vehRot = quatFromDir(-veh:getDirectionVector(), veh:getDirectionVectorUp())
+
+	veh:applyClusterVelocityScaleAdd(refNodeID, 1, -vehVel.x, -vehVel.y, -vehVel.z) -- removing any current velocity before teleport seems more stable
+
 	local rot = vehRot:inversed() * newRot
 	veh:setClusterPosRelRot(refNodeID, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, rot.w)
-
-	vel = vel - localVel:rotated(rot) -- setClusterPosRelRot also rotates the velocity so we have to do that as well
 	veh:applyClusterVelocityScaleAdd(refNodeID, 1, vel.x, vel.y, vel.z) -- setting velocity with the GE command doesn't destroy vehicles so we set most of the velocity here
 
 	local noCounterVelocity = positionData.noCounter or 0
-	local onlyAngularVelocity = 1
+	local onlyAngularVelocity = 0
 
 	-- but since it doesn't do rotational velocity we still need to use VE
 	-- apparently GE to VE queues are really fast, so we don't need any extra prediction with this queue

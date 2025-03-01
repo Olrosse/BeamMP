@@ -45,7 +45,7 @@ local function calcCOG()
 	
 	cog:setScaled(1/totalMass)
 	
-	local rot = quatFromDir(-obj:getDirectionVector(), obj:getDirectionVectorUp())
+	local rot = quat(obj:getRotation()) --quatFromDir(-obj:getDirectionVector(), obj:getDirectionVectorUp())
 	M.cogRel = cog:rotated(rot:inversed())
 end
 
@@ -112,7 +112,7 @@ local function findConnectedNodes()
 	end
 	cog:setScaled(1/totalMass)
 	
-	local rot = quatFromDir(-obj:getDirectionVector(), obj:getDirectionVectorUp())
+	local rot = quat(obj:getRotation()) --quatFromDir(-obj:getDirectionVector(), obj:getDirectionVectorUp())
 	M.cogRel = cog:rotated(rot:inversed())
 end
 
@@ -230,7 +230,7 @@ end
 --               and apply enough force to reach the calculated speed in 1 physics tick.
 -- NOTE: - very high values can destroy vehicles (above about 20-30 rad/s for most cars) or cause instability
 local function addAngularForce(nodes, x, y, z, pitchAV, rollAV, yawAV, isCounterVel)
-	local rot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
+	local rot = quat(obj:getRotation()) --quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
 	local cog = M.cogRel:rotated(rot)
 	local mainClusterID = obj:getNodeCluster(refNode)
 	--print("addAngularVelocity: pitchAV: "..pitchAV..", rollAV: "..rollAV..", yawAV: "..yawAV)
@@ -260,14 +260,14 @@ local function addAngularForce(nodes, x, y, z, pitchAV, rollAV, yawAV, isCounter
 end
 
 local function addAngularVelocity(x, y, z, pitchAV, rollAV, yawAV, onlyAngularVelocity, noCounterVelocity)
-	local rot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
-	local cog = M.cogRel:rotated(rot)
-	local vel = vec3(x, y, z) - cog:cross(vec3(pitchAV, rollAV, yawAV))
 	local velMulti = 1
-
-	if onlyAngularVelocity then
+	if onlyAngularVelocity == 1 then
 		velMulti = 0
 	end
+
+	local rot = quat(obj:getRotation()) --quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
+	local cog = M.cogRel:rotated(rot)
+	local vel = (vec3(x, y, z)*velMulti) - cog:cross(vec3(pitchAV, rollAV, yawAV))
 
 	local connectedNodeCount = #nodes
 	local disconnectedNodeCount = #disconnectedNodes
@@ -285,15 +285,15 @@ local function addAngularVelocity(x, y, z, pitchAV, rollAV, yawAV, onlyAngularVe
 			end
 		end
 	else
-		obj:applyClusterLinearAngularAccel(refNode,vel*physicsFPS*velMulti, -vec3(pitchAV, rollAV, yawAV)*physicsFPS)
-		if noCounterVelocity then return end -- used on spawn and reset to wait with the counter velocity for a bit so things like logs on the T-series don't slide off
+		obj:applyClusterLinearAngularAccel(refNode,vel*physicsFPS, -vec3(pitchAV, rollAV, yawAV)*physicsFPS)
+		if noCounterVelocity and noCounterVelocity == 1 then return end -- used on spawn and reset to wait with the counter velocity for a bit so things like logs on the T-series don't slide off
 		addAngularForce(disconnectedNodes, -x, -y, -z, -pitchAV, -rollAV, -yawAV, true)
 	end
 end
 
 -- Instantly set vehicle angular velocity in rad/s
 local function setAngularVelocity(x, y, z, pitchAV, rollAV, yawAV, onlyAngularVelocity, noCounterVelocity)
-	local rot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
+	local rot = quat(obj:getRotation()) --quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
 	local cog = M.cogRel:rotated(rot)
 	
 	local rvel = vec3(pitchAV, rollAV, yawAV)
@@ -333,6 +333,10 @@ local function updateGFX(dt)
 	
 	for i = 1, #nodes do
 		obj.debugDrawProxy:drawNodeSphere(nodes[i][1], 0.03, color(255, 0, 0, 200))
+	end
+
+	for i = 1, #disconnectedNodes do
+		obj.debugDrawProxy:drawNodeSphere(disconnectedNodes[i][1], 0.03, color(0, 0, 255, 200))
 	end
 	
 	obj.debugDrawProxy:drawSphere(0.3, obj:getPosition()+M.cogRel:rotated(vehRot), color(0, 0, 255, 200))

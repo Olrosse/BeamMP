@@ -9,6 +9,7 @@ local M = {}
 local abs = math.abs
 local min = math.min
 local max = math.max
+local acos = math.acos
 
 
 
@@ -45,19 +46,19 @@ end
 -- ============= VARIABLES =============
 -- Position
 local posCorrectMul = 5        -- How much velocity to use for correcting position error (m/s per m)
-local posForceMul = 5          -- How much acceleration is used to correct velocity
+local posForceMul = 8          -- How much acceleration is used to correct velocity
 local minPosForce = 0.04       -- If force is smaller than this, ignore to save performance
-local maxPosForce = 100        -- Maximum position correction force (m/s^2)
-local maxAcc = 100             -- Maximum acceleration in received data (m/s^2)
+local maxPosForce = 200        -- Maximum position correction force (m/s^2)
+local maxAcc = 200             -- Maximum acceleration in received data (m/s^2)
 local maxAccError = 3          -- If difference between target and actual acceleration larger than this, decrease force
 
 -- Rotation
 local rotCorrectMul = 7        -- How much velocity to use for correcting angle error (rad/s per rad)
-local rotForceMul = 7          -- How much acceleration is used to correct angular velocity
+local rotForceMul = 9          -- How much acceleration is used to correct angular velocity
 local minRotForce = 0.02       -- If force is smaller than this, ignore to save performance
-local maxRotForce = 50         -- Maximum rotation correction force (rad/s^2)
-local maxRacc = 50             -- Maximum angular acceleration in received data (rad/s^2)
-local maxRaccError = 3         -- If difference between target and actual angular acceleration larger than this, decrease force
+local maxRotForce = 200         -- Maximum rotation correction force (rad/s^2)
+local maxRacc = 200             -- Maximum angular acceleration in received data (rad/s^2)
+local maxRaccError = 5         -- If difference between target and actual angular acceleration larger than this, decrease force
 
 -- Teleport
 local tpDelayAdd = 1           -- Additional teleport delay (s)
@@ -78,15 +79,16 @@ local packetTimeout = 0.1      -- Stop prediction if no packet received within t
 local localVelSmoother = newVectorSmoothing(50)             -- Smoother for local velocity
 local localRvelSmoother = newVectorSmoothing(50)            -- Smoother for local angular velocity
 local remoteVelSmoother = newVectorSmoothing(2)             -- Smoother for received velocity
-local remoteRvelSmoother = newVectorSmoothing(2)            -- Smoother for received angular velocity
+local remoteRvelSmoother = newVectorSmoothing(1)            -- Smoother for received angular velocity
 local remoteAccSmoother = newVectorSmoothing(1)             -- Smoother for acceleration calculated from received data
-local remoteRaccSmoother = newVectorSmoothing(1)            -- Smoother for angular acceleration calculated from received data
+local remoteRaccSmoother = newVectorSmoothing(0.2)            -- Smoother for angular acceleration calculated from received data
 local accErrorSmoother = newVectorSmoothing(50)             -- Smoother for acceleration error
 local raccErrorSmoother = newVectorSmoothing(50)            -- Smoother for angular acceleration error
 local timeOffsetSmoother = newTemporalSmoothingNonLinear(1) -- Smoother for getting average time offset
 
 -- Persistent data
 local framesSinceReset = 0
+local framesSinceTeleport = 0
 local timer = 0
 local ownPing = 0
 local lastDT = 0
@@ -207,22 +209,50 @@ local function update(dtSim)
 	smoothRvel = localRvelSmoother:get(vec3(obj:getPitchAngularVelocity(), obj:getRollAngularVelocity(), obj:getYawAngularVelocity()), dtSim)
 end
 
+local function predict_quaternion_optimized(q, angular_velocity, angular_acceleration, predictTime)
+    -- Update angular velocity: omega_new = omega + alpha * dt
+    angular_velocity = angular_velocity + angular_acceleration * predictTime
+    -- Shortcut for quaternion update (direct math)
+    local half_predictTime = 0.5 * predictTime
+    local x, y, z = angular_velocity.x, angular_velocity.y, angular_velocity.z
 
+    -- Compute dq in-place
+    local dw = -half_predictTime * (q.x * x + q.y * y + q.z * z)
+    local dx =  half_predictTime * (q.w * x + q.y * z - q.z * y)
+    local dy =  half_predictTime * (q.w * y - q.x * z + q.z * x)
+    local dz =  half_predictTime * (q.w * z + q.x * y - q.y * x)
+
+    -- Update quaternion in-place
+    q.w = q.w + dw
+    q.x = q.x + dx
+    q.y = q.y + dy
+    q.z = q.z + dz
+
+    -- Normalize quaternion only every N steps or if needed
+    local norm2 = q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z
+    if norm2 > 1.0001 or norm2 < 0.9999 then
+        local inv_norm = 1.0 / math.sqrt(norm2)
+        q.w = q.w * inv_norm
+        q.x = q.x * inv_norm
+        q.y = q.y * inv_norm
+        q.z = q.z * inv_norm
+    end
+
+    return q, angular_velocity -- Return updated quaternion and angular velocity
+end
 
 local function updateGFX(dt)
 	dt = dt * (remoteData.localSimspeed or 1)
 	timer = timer + dt
 	lastDT = dt
 	framesSinceReset = framesSinceReset + 1
-
+	framesSinceTeleport = framesSinceTeleport + 1
+	--if v.mpVehicleType == "L" then velocityVE.setAngularVelocity(0,0,0,0,20,0) end
 	-- If there is no received data, or data is older than timeout, do nothing
-	if not remoteData.pos or (timer-remoteData.recTime) > packetTimeout then return end
-	
-	-- Since the line above returns end if there is no remote data we know this vehicle should be remote if this runs
-	if v.mpVehicleType == "L" then v.mpVehicleType = "R" end
+	if not remoteData.pos or (timer-remoteData.recTime) > packetTimeout or framesSinceTeleport < 2 then  return end
 
 	-- Local vehicle data
-	local vehRot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
+	local vehRot = quat(obj:getRotation()) --quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
 	local vehRvel = smoothRvel:rotated(vehRot)
 	local vehRacc = vehRvel-(lastVehRvel or vehRvel)
 	
@@ -245,7 +275,7 @@ local function updateGFX(dt)
 	local calcLocalTime = remoteData.timer + timeOffset
 
 	-- How far ahead the position needs to be predicted
-	local predictTime = min(max(timer - calcLocalTime, -maxPredict), maxPredict)
+	local predictTime = min(max(timer - calcLocalTime, -maxPredict), maxPredict) --+ 0.3
 
 	-- More prediction = slower smoothing
 	local smootherDT = dt / guardZero(abs(predictTime))
@@ -255,34 +285,73 @@ local function updateGFX(dt)
 	local remoteRacc = remoteRaccSmoother:get(remoteData.racc, smootherDT)
 
 	-- Use received position, and smoothed velocity and acceleration to predict vehicle position
-	local pos = remoteData.pos + remoteVel*predictTime + 0.5*remoteAcc*predictTime*predictTime
+	local pos = remoteData.pos + remoteVel*predictTime --+ 0.5*remoteAcc*predictTime*predictTime
 	local vel = remoteVel + remoteAcc*predictTime
-	local rotAdd = remoteRvel*predictTime + 0.5*remoteRacc*predictTime*predictTime
-	local rot = remoteData.rot * quatFromEuler(rotAdd.x, rotAdd.y, rotAdd.z)
-	local rvel = remoteRvel + remoteRacc*predictTime
+
+	--local timer1 = os:clockhp()
+
+	--local rotAdd = remoteRvel + remoteRacc * predictTime
+	--local rotAddQuat = remoteData.rot * quat(rotAdd.x,rotAdd.y,rotAdd.z,0) * 0.5
+	--local rot = (remoteData.rot + (rotAddQuat * predictTime)):normalized()
+	local rot , rvel = predict_quaternion_optimized(quat(remoteData.rot), remoteRvel, remoteRacc, predictTime)
+
+	--local timer2 = os:clockhp()
+
+	--local rotAdd = remoteRvel*predictTime + 0.5*remoteRacc*predictTime*predictTime
+	--local rot = remoteData.rot * quatFromEuler(rotAdd.x, rotAdd.y, rotAdd.z)
+	--local rvel = remoteRvel + remoteRacc*predictTime
+
+	--local timer3 = os:clockhp()
+--
+	--dump("new",(timer2-timer1)*1000000)
+	--dump("old",(timer3-timer2)*1000000)
+--
+	--dump("dif",((timer2-timer1)*1000000) - ((timer3-timer2)*1000000))
+	--dump("rot2   ",rot2)
+	--dump("rot    ",rot)
+	--dump("rvel2  ",rvel2)
+	--dump("rvel   ",rvel)
+
 
 	--[[
 	-- Debug
 	debugDrawer:drawSphere(0.3, remoteData.pos:toFloat3(), color(0,0,255,200))
-	debugDrawer:drawLine(remoteData.pos:toFloat3(), (remoteData.pos + vec3(0,-5,0):rotated(remoteData.rot)):toFloat3(), color(0,0,255,200))
+	--debugDrawer:drawLine(remoteData.pos:toFloat3(), (remoteData.pos + vec3(0,-5,0):rotated(remoteData.rot)):toFloat3(), color(0,0,255,200))
+
+	debugDrawer:drawCylinder(vehPos:toFloat3(), (vehPos + vec3(0,-5,0):rotated(remoteData.rot)):toFloat3(),0.1, color(0,0,255,200))
+
+	debugDrawer:drawCylinder(remoteData.pos:toFloat3(), (remoteData.pos + vec3(0,-5,0):rotated(remoteData.rot)):toFloat3(),0.1, color(0,0,255,200))
 	debugDrawer:drawSphere(0.3, pos:toFloat3(), color(0,255,0,200))
-	debugDrawer:drawLine(pos:toFloat3(), (pos + vec3(0,-5,0):rotated(rot)):toFloat3(), color(0,255,0,200))
-	debugDrawer:drawSphere(0.3, vehPos:toFloat3(), color(255,0,0,200))
+	--debugDrawer:drawLine(pos:toFloat3(), (pos + vec3(0,-5,0):rotated(rot)):toFloat3(), color(0,255,0,200))
+	debugDrawer:drawCylinder(pos:toFloat3(), (pos + vec3(0,-5,0):rotated(rot)):toFloat3(),0.1, color(0,255,0,200))
+
+	debugDrawer:drawSphere(0.1, vehPos:toFloat3(), color(255,0,0,200))
 	debugDrawer:drawLine(vehPos:toFloat3(), (vehPos + vec3(0,-5,0):rotated(vehRot)):toFloat3(), color(255,0,0,200))
 	debugDrawer:drawText(pos:toFloat3(), color(0,0,0,255), string.format("Prediction: %.0f ms", predictTime*1000))
+
+	
+	debugDrawer:drawSphere(0.3, obj:getPosition(), color(255,255,0,200))
 	--]]
 
 	-- Error correction
 	local posError = pos - vehPos
-	local rotErrorQuat = vehRot:inversed() * rot
-	local rotError = rotErrorQuat:toEulerYXZ()
-	rotError = vec3(rotError.y, rotError.z, rotError.x)
-	
+	--local rotErrorQuat = vehRot:inversed() * rot
+	--local rotError = rotErrorQuat:toEulerYXZ()
+	--rotError = vec3(rotError.y, rotError.z, rotError.x)
+	--local rotErrorLen = rotError:length()
+
+	if vehRot:dot(rot) < 0 then
+		rot = -rot
+	end
+    local rotErrorQuat = rot * vehRot:inversed()
+	local rotError = vec3(rotErrorQuat.x, rotErrorQuat.y, rotErrorQuat.z):rotated(vehRot)*2
+    local rotErrorLen =  2 * acos(max(-1, min(1, rotErrorQuat.w)))
+
 	-- Calculate teleport thresholds
 	local maxVel = tpVelSmoother:get(max(vel:length(), vehVel:length()), dt)
 	local tpDist1 = tpDistAdd + maxVel*tpDistMul1
 	local tpDist2 = tpDistAdd + maxVel*tpDistMul2
-	
+
 	-- Debug for teleport distances
 	--debugDrawer:drawSphere(tpDist1, vehPos:toFloat3(), color(0,0,255,50))
 	--debugDrawer:drawSphere(tpDist2, vehPos:toFloat3(), color(255,0,0,50))
@@ -292,7 +361,6 @@ local function updateGFX(dt)
 	local tpRot2 = tpRotAdd + maxRvel*tpRotMul2
 	
 	local posErrorLen = posError:length()
-	local rotErrorLen = rotError:length()
 	
 	if posErrorLen > tpDist1 or rotErrorLen > tpRot1 then
 		tpTimer = tpTimer + dt
@@ -303,22 +371,30 @@ local function updateGFX(dt)
 	-- If instant teleport distance or teleport timer exceeded, teleport
 	if framesSinceReset > 5 then -- wating 6 frames then always teleporting the 6th frame makes reseting/recovering a remote vehicle at speed teleport much more consistent, maybe the smoothers catching up?
 		if framesSinceReset == 6 or tpTimer > (tpDelayAdd + abs(predictTime)) or posErrorLen > tpDist2 or rotErrorLen > tpRot2 then
-			local predictTime = predictTime + dt -- add one frame so postion is correct when arriving in GE
+			local predictTime = predictTime + dt -- add one frame so position is correct when arriving in GE
 			-- Use received position, and smoothed velocity and acceleration to predict vehicle position
 			local pos = remoteData.pos + remoteVel*predictTime + 0.5*remoteAcc*predictTime*predictTime
 			local vel = remoteVel + remoteAcc*predictTime
-			local rotAdd = remoteRvel*predictTime + 0.5*remoteRacc*predictTime*predictTime
-			local rot = remoteData.rot * quatFromEuler(rotAdd.x, rotAdd.y, rotAdd.z)
+
+			--local rotAdd = remoteRvel*predictTime + 0.5*remoteRacc*predictTime*predictTime
+			--local rot = remoteData.rot * quatFromEuler(rotAdd.x, rotAdd.y, rotAdd.z)
+			--local rvel = remoteRvel + remoteRacc*predictTime
+
+			local rot , rvel = predict_quaternion_optimized(quat(remoteData.rot), vec3(remoteRvel), vec3(remoteRacc), predictTime)
 			-- Subtract COG offset because setPosition works relative to refNode
 			local tpPos = pos - velocityVE.cogRel:rotated(rot)
 
+			--local vel = vel - cog:cross(rvel)
 			local noCounterVelocity = 0
 			if framesSinceReset == 6 then
 				noCounterVelocity = 1 -- logs on the t series count as not attached so they would fly backwards on spawn, this disables the counter velocity preventing that
 			end
-			local posData = {pos = tpPos, vel = vel, vehVel = vehVel, rot = rot,rvel = rvel , noCounter = noCounterVelocity}
-			
+			--velocityVE.setAngularVelocity(0,0,0,0,0,0, nil, 1)
+
+			local posData = {pos = tpPos, rot = rot, vel = vel, rvel = rvel ,vehVel = vehVel, vehRot = vehRot, cog = cog, noCounter = noCounterVelocity}
 			obj:queueGameEngineLua("positionGE.setPositionRotationVelocity("..obj:getID()..","..serialize(posData)..")")
+
+			framesSinceTeleport = 0
 	
 			remoteVelSmoother:set(remoteData.vel)
 			remoteRvelSmoother:set(remoteData.rvel)
@@ -341,7 +417,8 @@ local function updateGFX(dt)
 	local accError = accErrorSmoother:get((lastAcc or vehAcc) - vehAcc, dt)
 	--print("AccError: "..tostring(accError:length()/dt))
 
-	local rvelError = rvel - vehRvel
+	--local rvelError = rvel - vehRvel
+	local rvelError =  (rvel:rotated(rot:inversed()) - vehRvel:rotated(vehRot:inversed())):rotated(vehRot)
 	local raccError = raccErrorSmoother:get((lastRacc or vehRacc) - vehRacc, dt)
 	--print("RaccError: "..tostring(raccError:length()/dt))
 
@@ -359,11 +436,11 @@ local function updateGFX(dt)
 	--print("targetAcc: "..targetAcc:length())
 	--print("targetRacc: "..targetRacc:length())
 	if framesSinceReset > 5 then
-		if targetRacc:length() > minRotForce or vehVel:length() > 1 then
+		--if targetRacc:length() > minRotForce or vehVel:length() > 0.2 then
 			velocityVE.addAngularVelocity(targetAcc.x, targetAcc.y, targetAcc.z, targetRacc.x, targetRacc.y, targetRacc.z)
-		elseif targetAcc:length() > minPosForce then
-			velocityVE.addVelocity(targetAcc.x, targetAcc.y, targetAcc.z)
-		end
+		--elseif targetAcc:length() > minPosForce then
+		--	velocityVE.addVelocity(targetAcc.x, targetAcc.y, targetAcc.z)
+		--end
 	end
 
 	lastAcc = targetAcc
@@ -371,10 +448,10 @@ local function updateGFX(dt)
 end
 
 
-
 local function getVehicleRotation()
+
 	-- this attempts to send a full table of nan if there are several rapid instability causing VE lua to break after next vehicle reload, seems to be caused by a game issue
-	local rot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
+	local rot = quat(obj:getRotation())--quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
 	local rvel = smoothRvel:rotated(rot)
 	
 	local cog = velocityVE.cogRel:rotated(rot)
