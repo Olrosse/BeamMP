@@ -46,11 +46,84 @@ local function modifiedToggleWalkingMode()
 	end
 end
 
+local vehicleInstabilityState = {}
+local vehInstability = false
+local instabilityTimer = 0
+local instabilityPausedFrameCount = 0
+
+local function instabilityHandlerUpdate(dt)
+	if vehInstability then
+		if instabilityTimer < 0 then
+			instabilityPausedFrameCount = instabilityPausedFrameCount + 1
+			if instabilityPausedFrameCount == 1 then
+				simTimeAuthority.pause(true)
+				ui_message("Attempting to reactivate unstable vehicles", 10, 'instabilityReactivate', "warning")
+			elseif instabilityPausedFrameCount == 3 then
+				log("E", "", "reactivating vehicles")
+				for vehID, states in pairs(vehicleInstabilityState) do
+					if states.triggered then
+						local veh = getObjectByID(vehID)
+						veh:queueLuaCommand("obj:requestReset(RESET_PHYSICS)")
+						veh:setActive(1)
+						--if states.instabilityCount > 10 then
+						--	--TODO maybe delete? or delete and put back into queue
+						--end
+					end
+				end
+			elseif instabilityPausedFrameCount == 10 then
+				log("E", "", "resuming game")
+				for vehID, states in pairs(vehicleInstabilityState) do
+					if states.triggered then
+						local veh = getObjectByID(vehID)
+						if not veh:getActive() then
+							veh:setActive(1)
+						end
+						vehicleInstabilityState[vehID].triggered = false
+					end
+				end
+
+				instabilityPausedFrameCount = 0
+				simTimeAuthority.pause(false)
+				vehInstability = false
+				instabilityTimer = 0
+				return
+			end
+		end
+		instabilityTimer = instabilityTimer - dt
+	end
+end
 
 --- A custom onInstabilityDetected function to prevent the freezing / pausing of the game for when in MP session
 --- @param jbeamFilename table Object jbeam data of the object causing the instability
-local function modified_onInstabilityDetected(jbeamFilename)
-	log('E', "", "Instability detected for vehicle " .. tostring(jbeamFilename))
+local function modified_onInstabilityDetected(vid)
+	local v = getObjectByID(vid)
+	local jbeamFilename = v:getJBeamFilename()
+	--simTimeAuthority.pause(true)
+	v:setActive(0) -- deactivate vehicle instead of pausing the game to keep gameplay smooth
+	v:queueLuaCommand("obj:requestReset(RESET_PHYSICS)")
+
+	if vehicleInstabilityState[vid] then
+		vehicleInstabilityState[vid].instabilityCount = vehicleInstabilityState[vid].instabilityCount + 1
+		vehicleInstabilityState[vid].triggered = true
+	else
+		vehicleInstabilityState[vid] = {instabilityCount = 1, triggered = true}
+	end
+
+	if instabilityTimer == 0 then
+		instabilityTimer = 2
+		instabilityPausedFrameCount = 0
+	elseif instabilityTimer < 0 then
+		instabilityPausedFrameCount = 0
+	end
+	vehInstability = true
+
+	log('E', "", "Instability detected for vehicle ID: "..dumps(vid)..", jbeamFilename: "..dumps(jbeamFilename))
+	log("E", "", "Information about all vehicles:")
+	for vid,v in vehiclesIterator() do
+		log("E", "", " - Vehicle ID: "..dumps(vid)..", jbeamFilename: "..v:getJBeamFilename()..", position: "..dumps(v:getPosition())..", partConfig: "..dumps(v.partConfig))
+	end
+	ui_message("Instability detected in \'"..v:getJBeamFilename().."\' vehicle deactivated temporarily", 10, 'instability', "warning")
+	--ui_message({txt="vehicle.main.instability", context={vehicle=tostring(jbeamFilename)}}, 10, 'instability', "warning")
 end
 
 
@@ -85,6 +158,8 @@ local function onUpdate(dt)
 			extensions.hook('onCameraHandlerSet')
 			--commands.setGameCamera()
 		end
+
+		instabilityHandlerUpdate(dt)
 	end
 end
 
