@@ -121,10 +121,10 @@ local function modified_onInstabilityDetected(vid)
 	vehInstability = true
 
 	log('E', "", "Instability detected for vehicle ID: "..dumps(vid)..", jbeamFilename: "..dumps(jbeamFilename))
-	log("E", "", "Information about all vehicles:")
-	for vid,v in vehiclesIterator() do
-		log("E", "", " - Vehicle ID: "..dumps(vid)..", jbeamFilename: "..v:getJBeamFilename()..", position: "..dumps(v:getPosition())..", partConfig: "..dumps(v.partConfig))
-	end
+--	log("E", "", "Information about all vehicles:")
+--	for vid,v in vehiclesIterator() do
+--		log("E", "", " - Vehicle ID: "..dumps(vid)..", jbeamFilename: "..v:getJBeamFilename()..", position: "..dumps(v:getPosition())..", partConfig: "..dumps(v.partConfig))
+--	end
 	ui_message("Instability detected in \'"..v:getJBeamFilename().."\' vehicle deactivated temporarily", 10, 'instability', "warning")
 	--ui_message({txt="vehicle.main.instability", context={vehicle=tostring(jbeamFilename)}}, 10, 'instability', "warning")
 end
