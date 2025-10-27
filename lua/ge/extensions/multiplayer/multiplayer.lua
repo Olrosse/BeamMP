@@ -50,13 +50,19 @@ local vehicleInstabilityState = {}
 local vehInstability = false
 local instabilityTimer = 0
 local instabilityPausedFrameCount = 0
+local hasRecovered = true
+local wasPaused = false
 
 local function instabilityHandlerUpdate(dt)
 	if vehInstability then
 		if instabilityTimer < 0 then
 			instabilityPausedFrameCount = instabilityPausedFrameCount + 1
 			if instabilityPausedFrameCount == 1 then
+				if hasRecovered then
+					wasPaused = simTimeAuthority.getPause()
+				end
 				simTimeAuthority.pause(true)
+				hasRecovered = false
 				ui_message("Attempting to reactivate unstable vehicles", 10, 'instabilityReactivate', "warning")
 			elseif instabilityPausedFrameCount == 3 then
 				log("E", "", "reactivating vehicles")
@@ -86,9 +92,10 @@ local function instabilityHandlerUpdate(dt)
 				end
 
 				instabilityPausedFrameCount = 0
-				simTimeAuthority.pause(false)
+				simTimeAuthority.pause(wasPaused)
 				vehInstability = false
 				instabilityTimer = 0
+				hasRecovered = true
 				return
 			end
 		end
