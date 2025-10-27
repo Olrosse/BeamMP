@@ -63,11 +63,14 @@ local function instabilityHandlerUpdate(dt)
 				for vehID, states in pairs(vehicleInstabilityState) do
 					if states.triggered then
 						local veh = getObjectByID(vehID)
-						veh:queueLuaCommand("obj:requestReset(RESET_PHYSICS)")
-						veh:setActive(1)
-						--if states.instabilityCount > 10 then
-						--	--TODO maybe delete? or delete and put back into queue
-						--end
+						if states.instabilityCount > 10 then
+							ui_message(""..veh:getJBeamFilename().." had too many instabilities and was deleted", 10, 'instabilityDelete'..veh:getJBeamFilename()..''.. vehID, "warning")
+							veh:delete()
+							vehicleInstabilityState[vehID] = nil
+						else
+							veh:queueLuaCommand("obj:requestReset(RESET_PHYSICS)")
+							veh:setActive(1)
+						end
 					end
 				end
 			elseif instabilityPausedFrameCount == 10 then
