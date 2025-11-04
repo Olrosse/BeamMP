@@ -1972,6 +1972,7 @@ local function onServerVehicleRemoved(serverVehicleID)
 		UI.updateQueue(getQueueCounts())
 		return
 	end
+	local updateQueueUi = vehicle.editQueue and true or false
 
 	local gameVehicleID = vehicle.gameVehicleID
 	if gameVehicleID > 0 then
@@ -1991,6 +1992,10 @@ local function onServerVehicleRemoved(serverVehicleID)
 	else
 		log('W', "onServerVehicleRemoved", "Failed removing vehicle "..serverVehicleID..", ID is unknown")
 		vehicle:delete()
+	end
+
+	if updateQueueUi then
+		UI.updateQueue(getQueueCounts())
 	end
 end
 
