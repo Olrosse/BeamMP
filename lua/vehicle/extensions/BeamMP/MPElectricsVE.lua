@@ -339,6 +339,9 @@ local function round2(num, numDecimalPlaces)
   return math.floor((num*(10^numDecimalPlaces)+0.5))/(10^numDecimalPlaces)
 end
 
+local sBuffer = require("string.buffer")
+local packetBuff = sBuffer.new()
+
 local function check()
 	local e = electrics.values
 	if not e then return end -- Error avoidance in console
@@ -391,7 +394,15 @@ local function check()
 		:: skip_electric ::
 	end
 	if electricsChanged then
-		obj:queueGameEngineLua("MPElectricsGE.sendElectrics(\'"..jsonEncode(electricsToSend).."\', "..obj:getID()..")")
+		if MPNetworkVE.socketConnected then
+			packetBuff:reset()
+			packetBuff:put('We:', v.mpServerID,":")
+			packetBuff:put(jsonEncode(electricsToSend))
+			local stringToSend = packetBuff:tostring()
+			MPNetworkVE.send(stringToSend)
+		else
+			obj:queueGameEngineLua("MPElectricsGE.sendElectrics(\'"..jsonEncode(electricsToSend).."\', "..obj:getID()..")")
+		end
 	end
 end
 

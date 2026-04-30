@@ -98,6 +98,9 @@ local shortName = {
 	clutch = "c"
 }
 
+local sBuffer = require("string.buffer")
+local packetBuff = sBuffer.new()
+
 local function getInputs()
 	local inputsToSend = {}
 	for inputName, _ in pairs(input.state) do
@@ -132,7 +135,16 @@ local function getInputs()
 	lastInputs.g = electrics.values.gear
 
 	if tableIsEmpty(inputsToSend) then return end
-	obj:queueGameEngineLua("MPInputsGE.sendInputs(\'"..jsonEncode(inputsToSend).."\', "..obj:getID()..")") -- Send it to GE lua
+
+	if MPNetworkVE.socketConnected then
+		packetBuff:reset()
+		packetBuff:put('Vi:', v.mpServerID,":")
+		packetBuff:put(jsonEncode(inputsToSend))
+		local stringToSend = packetBuff:tostring()
+		MPNetworkVE.send(stringToSend)
+	else
+		obj:queueGameEngineLua("MPInputsGE.sendInputs(\'"..jsonEncode(inputsToSend).."\', "..obj:getID()..")") -- Send it to GE lua
+	end
 end
 
 local function storeTargetValue(inputName,inputState)
@@ -168,7 +180,7 @@ local function applyInputs(data)
 	end
 end
 
-local function updateGFX(dt)
+local function onBeamMPupdateGFX(dt)
 	if v.mpVehicleType == 'R' then
 		if remoteGear then
 			applyGear(remoteGear)
@@ -222,7 +234,7 @@ local function onExtensionLoaded()
 	end
 end
 
-M.updateGFX = updateGFX
+M.onBeamMPupdateGFX = onBeamMPupdateGFX
 M.onReset = onReset
 M.getInputs   = getInputs
 M.applyInputs = applyInputs

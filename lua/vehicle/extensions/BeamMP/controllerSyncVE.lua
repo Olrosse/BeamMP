@@ -19,9 +19,24 @@ local ownerReset
 local framesSinceReset = 0
 local hookExstensions
 
+local sBuffer = require("string.buffer")
+local packetBuff = sBuffer.new()
+
 local function sendControllerData(tempTable) -- using nodesGE temporarely until launcher and server supports the new packet
 	--obj:queueGameEngineLua("MPControllerGE.sendControllerData(\'" .. jsonEncode(tempTable) .. "\', " .. obj:getID() ..")") -- Send it to GE lua
-	obj:queueGameEngineLua("nodesGE.sendControllerData(\'" .. jsonEncode(tempTable) .. "\', " .. obj:getID() ..")") -- Send it to GE lua
+
+	if tempTable.vehID then
+		tempTable.vehID = MPVehicleVE.getServerVehicleID(tempTable.vehID)
+	end
+	if MPNetworkVE.socketConnected then
+		packetBuff:reset()
+		packetBuff:put('Xc:', v.mpServerID,":")
+		packetBuff:put(jsonEncode(tempTable))
+		local stringToSend = packetBuff:tostring()
+		MPNetworkVE.send(stringToSend)
+	else
+		obj:queueGameEngineLua("nodesGE.sendControllerData(\'" .. jsonEncode(tempTable) .. "\', " .. obj:getID() ..")") -- Send it to GE lua
+	end
 end
 
 local function mergeTable(tempTable , table)
@@ -53,6 +68,9 @@ local function applyControllerData(data,isDecoded)
 
 	if decodedData.controllerName then
 		--dump("applyControllerData",decodedData) --TODO for debugging, remove when controllersync is getting released
+		if decodedData.vehID then
+			decodedData.vehID = MPVehicleVE.getGameVehicleID(decodedData.vehID)
+		end
 
 		local variables = decodedData.variables
 		if type(variables) == "table" and unpack(variables) ~= nil then
@@ -211,11 +229,11 @@ local function getControllerData()
 	end
 end
 
-local function updateGFX(dt)
+local function onBeamMPupdateGFX(dt)
 	if not hookExstensions then
 		hookExstensions = true
 		extensions.hook("loadControllerSyncFunctions") -- controllerSyncVE.lua doesn't exist for the other extensions when calling the hook with onExtensionLoaded
-		controller.cacheAllControllerFunctions() -- recache functions to make UpdateGFX hooks work
+		controller.cacheAllControllerFunctions() -- recache functions to make onBeamMPupdateGFX hooks work
 	end
 	-- here im resyncing function states after the remote vehicle was reset
 	if framesSinceReset == 1 then -- we have to wait one frame so the controller's reset function don't override the state again
@@ -250,6 +268,6 @@ M.addControllerTypes = addControllerTypes
 M.storeState = storeState
 M.onReset = onReset
 M.onBeamMPVehicleReset = onBeamMPVehicleReset
-M.updateGFX = updateGFX
+M.onBeamMPupdateGFX = onBeamMPupdateGFX
 
 return M

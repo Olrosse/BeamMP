@@ -91,8 +91,8 @@ local function applyPos(data, serverVehicleID)
 			UI.setPlayerPing(owner.name, ping)
 			owner.ping = ping
 			owner.fps = 1/deltaDt
+			owner.hasUpdatedPing = true
 		end-- Send ping to UI
-		owner.hasUpdatedPing = true
 	end
 end
 
@@ -169,7 +169,6 @@ end
 -- @param rawData string The raw message data.
 local function handle(rawData)
 	local code, serverVehicleID, data = string.match(rawData, "^(%a)%:(%d+%-%d+)%:({.*})")
-
 	local veh = MPVehicleGE.getVehicles()[serverVehicleID]
 
 	if not veh or veh.isLocal then
@@ -193,6 +192,25 @@ end
 local function setPing(ping)
 	local p = ping/1000
 	be:queueAllObjectLua("positionVE.setPing("..p..")")
+	local players = MPVehicleGE.getPlayers()
+	for k,playerData in pairs(players) do
+		if not players.isLocal then
+			local vehicles = playerData.vehicles.objects
+			local _, veh = next(vehicles)
+			if veh then
+				veh:queueLuaCommand("if positionVE.sendPingToGE then positionVE.sendPingToGE() end")
+			end
+		end
+	end
+end
+
+local function applyVehiclePing(vehID,ping)
+	local vehicle = MPVehicleGE.getVehicleByGameID(vehID)
+	if not vehicle then return end
+	local owner = vehicle:getOwner()
+	if not owner then return end
+	ping = math.floor(ping*1000)
+	UI.setPlayerPing(owner.name, ping)
 end
 
 --- This function is to allow for the setting of the vehicle/objects position.
@@ -295,6 +313,7 @@ M.sendVehiclePosRot           = sendVehiclePosRot
 M.setPosition                 = setPosition
 M.setPositionRotationVelocity = setPositionRotationVelocity
 M.setPing                     = setPing
+M.applyVehiclePing            = applyVehiclePing
 M.setActualSimSpeed           = setActualSimSpeed
 M.getActualSimSpeed           = getActualSimSpeed
 M.onPreRender                 = onPreRender

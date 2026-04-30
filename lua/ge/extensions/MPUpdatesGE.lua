@@ -88,7 +88,7 @@ end
 
 
 M.onPlayerConnect = onPlayerConnect
-M.onUpdate        = onUpdate
+--M.onUpdate        = onUpdate -- ticking is moved to MPmainVE --
 M.onInit = function() setExtensionUnloadMode(M, "manual") end
 
 

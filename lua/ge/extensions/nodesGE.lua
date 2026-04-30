@@ -53,12 +53,6 @@ local function sendControllerData(data, gameVehicleID)
 	if MPGameNetwork.launcherConnected() then
 		local serverVehicleID = MPVehicleGE.getServerVehicleID(gameVehicleID)
 		if serverVehicleID and MPVehicleGE.isOwn(gameVehicleID) then
-			local decodedData = jsonDecode(data)
-			if decodedData.vehID then
-				decodedData.vehID = MPVehicleGE.getServerVehicleID(decodedData.vehID)
-			end
-			data = jsonEncode(decodedData)
-
 			MPGameNetwork.send(MPNetworkHelpers.generatePacketBuffer('Xc',serverVehicleID,data))
 		end
 	end

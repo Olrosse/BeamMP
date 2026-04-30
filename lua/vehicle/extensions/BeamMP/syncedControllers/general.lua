@@ -211,6 +211,10 @@ local includedControllerTypes = {
 		}
 	},
 
+	["linearActuators/linearActuatorTrailerFeet"] = {
+		["moveFeet"] = {}
+	},
+
 	["jato"] = {
 		["updateGFX"] = {
 			remoteOnly = true,
