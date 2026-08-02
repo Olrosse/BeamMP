@@ -11,16 +11,6 @@
 
 local M = {}
 
---- Called on specified interval by MPUpdatesGE to simulate our own tick event to collect data.
-local function tick()
-	for i,v in pairs(MPVehicleGE.getPlayerVehicleObjects(MPConfig.getPlayerServerID())) do
-		if v then
-			v:queueLuaCommand("nodesVE.getBreakGroups()")
-		end
-	end
-end
-
-
 --- Wraps up node data from player own vehicles and sends it to the server.
 -- INTERNAL USE
 -- @param data table The node data from VE
@@ -53,12 +43,6 @@ local function sendControllerData(data, gameVehicleID)
 	if MPGameNetwork.launcherConnected() then
 		local serverVehicleID = MPVehicleGE.getServerVehicleID(gameVehicleID)
 		if serverVehicleID and MPVehicleGE.isOwn(gameVehicleID) then
-			local decodedData = jsonDecode(data)
-			if decodedData.vehID then
-				decodedData.vehID = MPVehicleGE.getServerVehicleID(decodedData.vehID)
-			end
-			data = jsonEncode(decodedData)
-
 			MPGameNetwork.send(MPNetworkHelpers.generatePacketBuffer('Xc',serverVehicleID,data))
 		end
 	end
@@ -113,7 +97,6 @@ end
 
 
 
-M.tick       = tick
 M.handle     = handle
 M.sendNodes  = sendNodes
 M.applyNodes = applyNodes

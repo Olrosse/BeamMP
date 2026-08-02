@@ -10,7 +10,26 @@ v.mpServerID = ""
 local keyStates = {} -- table of keys and their states, used as a reference
 local keysToPoll = {} -- list of keys we want to poll for state changes
 local keypressTriggers = {}
+local serverVehIDMap = {}
+local gameVehIDMap = {}
 
+local function updateServerVehicleIDs()
+	local lpackData = obj:getLastMailbox("BeamMPServerVehIDs")
+	if lpackData == "" then return end
+	serverVehIDMap = lpack.decode(lpackData)
+	gameVehIDMap = {}
+	for gameID, serverID in pairs(serverVehIDMap) do
+		gameVehIDMap[serverID] = gameID
+	end
+end
+
+local function getGameVehicleID(serverVehicleID)
+	return gameVehIDMap[serverVehicleID]
+end
+
+local function getServerVehicleID(gameVehicleID)
+	return serverVehIDMap[gameVehicleID]
+end
 
 -------------------------------------------------------------------------------
 -- Keypress handling
@@ -60,6 +79,7 @@ end
 
 local function setServerID(id)
   v.mpServerID = id
+  extensions.hook("onBeamMPServerIDChanged")
 end
 
 local function updateGFX(dtReal)
@@ -80,6 +100,7 @@ end
 
 local function onExtensionLoaded()
 	obj:queueGameEngineLua("MPVehicleGE.onVehicleReady("..obj:getID()..")")
+	updateServerVehicleIDs()
 end
 
 setmetatable(input.keys, {}) -- disable deprecated warning
@@ -88,9 +109,11 @@ detectGlobalWrites() -- reenable global write notifications
 M.updateGFX = updateGFX
 M.onExtensionLoaded    = onExtensionLoaded
 
-M.setVehicleType       = setVehicleType
-M.setServerID          = setServerID
-
+M.setVehicleType         = setVehicleType
+M.setServerID            = setServerID
+M.getGameVehicleID       = getGameVehicleID
+M.getServerVehicleID     = getServerVehicleID
+M.updateServerVehicleIDs = updateServerVehicleIDs
 --M.getKeyState = getKeyState
 --M.addKeyEventListener = addKeyEventListener
 

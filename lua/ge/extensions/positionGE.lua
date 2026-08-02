@@ -37,16 +37,6 @@ local POSSMOOTHER = {}
 local TIMER = (HighPerfTimer or hptimer) -- game own timer that is much more accurate then os.clock()
 
 
-
---- Called on specified interval by positionGE to simulate our own tick event to collect data.
-local function tick()
-	for i,v in pairs(MPVehicleGE.getPlayerVehicleObjects(MPConfig.getPlayerServerID())) do
-		if v then
-			v:queueLuaCommand("positionVE.getVehicleRotation()")
-		end
-	end
-end
-
 --- Wraps vehicle position, rotation etc. data from player own vehicles and sends it to the server.
 -- INTERNAL USE
 -- @param data table The position and rotation data from VE
@@ -169,7 +159,6 @@ end
 -- @param rawData string The raw message data.
 local function handle(rawData)
 	local code, serverVehicleID, data = string.match(rawData, "^(%a)%:(%d+%-%d+)%:({.*})")
-
 	local veh = MPVehicleGE.getVehicles()[serverVehicleID]
 
 	if not veh or veh.isLocal then
@@ -193,6 +182,25 @@ end
 local function setPing(ping)
 	local p = ping/1000
 	be:queueAllObjectLua("positionVE.setPing("..p..")")
+	local players = MPVehicleGE.getPlayers()
+	for k,playerData in pairs(players) do
+		if not players.isLocal then
+			local vehicles = playerData.vehicles.objects
+			local _, veh = next(vehicles)
+			if veh then
+				veh:queueLuaCommand("if positionVE.sendPingToGE then positionVE.sendPingToGE() end")
+			end
+		end
+	end
+end
+
+local function applyVehiclePing(vehID,ping)
+	local vehicle = MPVehicleGE.getVehicleByGameID(vehID)
+	if not vehicle then return end
+	local owner = vehicle:getOwner()
+	if not owner then return end
+	ping = math.floor(ping*1000)
+	UI.setPlayerPing(owner.name, ping)
 end
 
 --- This function is to allow for the setting of the vehicle/objects position.
@@ -289,12 +297,12 @@ local function onSettingsChanged()
 end
 
 M.applyPos                    = applyPos
-M.tick                        = tick
 M.handle                      = handle
 M.sendVehiclePosRot           = sendVehiclePosRot
 M.setPosition                 = setPosition
 M.setPositionRotationVelocity = setPositionRotationVelocity
 M.setPing                     = setPing
+M.applyVehiclePing            = applyVehiclePing
 M.setActualSimSpeed           = setActualSimSpeed
 M.getActualSimSpeed           = getActualSimSpeed
 M.onPreRender                 = onPreRender

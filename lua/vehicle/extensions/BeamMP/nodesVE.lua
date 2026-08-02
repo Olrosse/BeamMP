@@ -3,6 +3,8 @@
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 local M = {}
 
+local sbuffer = require("string.buffer")
+local packetBuff = sbuffer.new()
 
 
 -- ============= VARIABLES =============
@@ -95,7 +97,16 @@ local function getNodes()
     save.beams[beam.cid + 1] = d
   end]]
 
-	obj:queueGameEngineLua("nodesGE.sendNodes(\'"..jsonEncode(save).."\', "..obj:getID()..")") -- Send it to GE lua
+
+	if MPNetworkVE.socketConnected then
+	  packetBuff:reset()
+	  packetBuff:put('Xn:', v.mpServerID,":")
+	  packetBuff:put(jsonEncode(save))
+	  local stringToSend = packetBuff:tostring()
+		MPNetworkVE.send(stringToSend)
+  else
+	  obj:queueGameEngineLua("nodesGE.sendNodes(\'"..jsonEncode(save).."\', "..obj:getID()..")") -- Send it to GE lua
+	end
 end
 
 
@@ -206,19 +217,28 @@ local function applyBreakGroups(data)
 	end
 end
 
-local function getBreakGroups()
 	local breakGroupArray = {}
+local function getBreakGroups()
+  table.clear(breakGroupArray)
 
 	for g in pairs(justBrokenBreakGroups) do
 		table.insert(breakGroupArray, g)
 	end
-	justBrokenBreakGroups = {}
+  table.clear(justBrokenBreakGroups)
 
 	if #breakGroupArray == 0 then
 		return
 	end
 
-	obj:queueGameEngineLua("nodesGE.sendBreakGroups(\'"..jsonEncode(breakGroupArray).."\', "..obj:getID()..")") -- Send it to GE lua
+	if MPNetworkVE.socketConnected then
+	  packetBuff:reset()
+	  packetBuff:put('Xg:', v.mpServerID,":")
+	  packetBuff:put(jsonEncode(breakGroupArray))
+	  local stringToSend = packetBuff:tostring()
+		MPNetworkVE.send(stringToSend)
+  else
+	  obj:queueGameEngineLua("nodesGE.sendBreakGroups(\'"..jsonEncode(breakGroupArray).."\', "..obj:getID()..")") -- Send it to GE lua
+	end
 end
 
 local function onBreakGroupBroken(g)

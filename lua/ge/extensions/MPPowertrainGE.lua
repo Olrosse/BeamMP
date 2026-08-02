@@ -12,16 +12,6 @@
 local M = {}
 
 
---- Called on specified interval by MPUpdatesGE to simulate our own tick event to collect data.
-local function tick()
-	for i,v in pairs(MPVehicleGE.getPlayerVehicleObjects(MPConfig.getPlayerServerID())) do
-		if v then
-			v:queueLuaCommand("MPPowertrainVE.check()")
-		end
-	end
-end
-
-
 --- Wraps up vehicle powertrain data and sends it to the server.
 -- INTERNAL USE
 -- @param data table The powertrain data from VE
@@ -111,7 +101,6 @@ end
 
 
 
-M.tick                   = tick
 M.handle                 = handle
 M.sendLivePowertrain     = sendLivePowertrain
 M.sendEngineData		 = sendEngineData

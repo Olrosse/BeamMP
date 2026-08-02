@@ -61,9 +61,6 @@ setExtensionUnloadMode("positionGE", "manual")
 load("MPPowertrainGE")
 setExtensionUnloadMode("MPPowertrainGE", "manual")
 
-load("MPUpdatesGE")
-setExtensionUnloadMode("MPUpdatesGE", "manual")
-
 load("nodesGE")
 setExtensionUnloadMode("nodesGE", "manual")
 

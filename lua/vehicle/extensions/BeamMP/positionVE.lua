@@ -90,6 +90,7 @@ local lastMailboxVersion = 0
 local framesSinceReset = 0
 local timer = 0
 local ownPing = 0
+local remotePing = 0
 local lastDT = 0
 
 local lastVehVel = nil
@@ -130,6 +131,12 @@ local function setPing(p)
 	if p < 0.99 or p > 1.01 then
 		ownPing = p
 	end
+end
+
+local function sendPingToGE()
+	local ping = remotePing
+	if v.mpVehicleType == "L" then ping = ownPing end
+	obj:queueGameEngineLua("positionGE.applyVehiclePing("..tonumber(objectId)..", "..tonumber(ping)..")")
 end
 
 
@@ -229,13 +236,14 @@ end
 
 
 
-local function updateGFX(dt)
-	updateRemoteData()
+local function onBeamMPupdateGFX(dt)
+	if not MPNetworkVE.socketConnected then
+		updateRemoteData()
+	end
 	dt = dt * (remoteData.localSimspeed or 1)
 	timer = timer + dt
 	lastDT = dt
 	framesSinceReset = framesSinceReset + 1
-
 
 	-- If there is no received data, or data is older than timeout, do nothing
 	if not remoteData.pos or (timer-remoteData.recTime) > packetTimeout then return end
@@ -389,9 +397,7 @@ local function updateGFX(dt)
 	lastRacc = targetRacc
 end
 
-
-
-local function getVehicleRotation()
+local function getVehicleRotationLegacy()
 	-- this attempts to send a full table of nan if there are several rapid instability causing VE lua to break after next vehicle reload, seems to be caused by a game issue
 	local rot = quatFromDir(-vec3(obj:getDirectionVector()), vec3(obj:getDirectionVectorUp()))
 	local rvel = smoothRvel:rotated(rot)
@@ -415,7 +421,47 @@ local function getVehicleRotation()
 	obj:queueGameEngineLua("positionGE.sendVehiclePosRot(\'"..jsonEncode(tempTable).."\', "..obj:getID()..")") -- Send it
 end
 
+local sbuffer = require("string.buffer")
+local packetBuff = sbuffer.new()
 
+local function getVehicleRotation()
+	if not v.mpServerID or v.mpServerID == "" then
+		getVehicleRotationLegacy()
+		return
+	end
+
+	-- this attempts to send a full table of nan if there are several rapid instability causing VE lua to break after next vehicle reload, seems to be caused by a game issue
+	local rot = quat(obj:getRotation())
+	local rvel = smoothRvel:rotated(rot)
+
+	local cog = velocityVE.cogRel:rotated(rot)
+	local pos = obj:getPosition() + cog
+	local vel = smoothVel + cog:cross(rvel)
+	if vel ~= vel then log('E','getVehicleRotation', 'skipped invalid velocity values') return end
+
+	vel = vel * simSpeedReal
+	rvel = rvel * simSpeedReal
+
+	if MPNetworkVE.socketConnected then
+		packetBuff:reset()
+		packetBuff:put('Zp:', v.mpServerID,":")
+		packetBuff:put("{")
+		packetBuff:putf('"tim":%0.4f', timer)
+		packetBuff:putf(',"vel":[%.3f,%.3f,%.3f]', vel.x, vel.y, vel.z)
+		packetBuff:putf(',"rot":[%.3f,%.3f,%.3f,%.3f]', rot.x, rot.y, rot.z, rot.w)
+		packetBuff:putf(',"rvel":[%.3f,%.3f,%.3f]', rvel.x, rvel.y, rvel.z)
+		packetBuff:putf(',"pos":[%.3f,%.3f,%.3f]', pos.x, pos.y, pos.z)
+		packetBuff:putf(',"ping":%0.4f', ownPing)
+		packetBuff:put("}")
+		local stringToSend = packetBuff:tostring()
+		local sentDataLen = MPNetworkVE.send(stringToSend)
+		if not sentDataLen then
+			getVehicleRotationLegacy()
+		end
+	else
+		getVehicleRotationLegacy()
+	end
+end
 
 local function onInit()
 	enablePhysicsStepHook()
@@ -425,13 +471,42 @@ local function setGameSpeed(speed)
 	simSpeedReal = speed
 end
 
+local function setVehiclePosRot(jsonData,dt,dtRaw)
+	local pr = jsonDecode(jsonData)
+	local pos  = vec3(pr.pos)
+	local vel  = vec3(pr.vel)
+	local rot  = quat(pr.rot)
+	local rvel = vec3(pr.rvel)
+	local tim  = pr.tim
+	remotePing = pr.ping
+	local simspeedfraction = 1/simSpeedReal
+
+	if not tim then return end
+	if remoteData.timer > tim then return end
+
+	local remoteDT = max(tim - remoteData.timer, 0.001)
+
+	remoteData.pos = pos
+	remoteData.rot = rot
+	remoteData.acc = limitVecLength((vel - remoteData.vel)/remoteDT, maxAcc)
+	remoteData.racc = limitVecLength((rvel - remoteData.rvel)/remoteDT, maxRacc)
+	remoteData.vel = vel*simspeedfraction
+	remoteData.rvel = rvel*simspeedfraction
+	remoteData.timer = tim
+	remoteData.timeOffset = timer-tim - (ownPing/2 - remotePing/2) + (dtRaw/2) -- - lastDT
+	remoteData.recTime = timer
+	remoteData.localSimspeed = math.min(simspeedfraction, 25)
+end
+
 M.onReset            = onReset
 M.onInit             = onInit
 M.onExtensionLoaded  = onInit
 M.onPhysicsStep      = update
-M.updateGFX          = updateGFX
+M.onBeamMPupdateGFX  = onBeamMPupdateGFX
 M.getVehicleRotation = getVehicleRotation
+M.setVehiclePosRot   = setVehiclePosRot
 M.setPing            = setPing
+M.sendPingToGE       = sendPingToGE
 M.setGameSpeed       = setGameSpeed
 
 

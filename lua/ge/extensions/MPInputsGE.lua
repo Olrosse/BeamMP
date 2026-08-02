@@ -12,16 +12,6 @@
 local M = {}
 
 
---- Called on specified interval by MPUpdatesGE to simulate our own tick event to collect data.
-local function tick()
-	for i,v in pairs(MPVehicleGE.getPlayerVehicleObjects(MPConfig.getPlayerServerID())) do
-		if v then
-			v:queueLuaCommand("MPInputsVE.getInputs()")
-		end
-	end
-end
-
-
 
 -- Wraps up vehicle inputs from player own vehicles and sends it to the server.
 -- INTERNAL USE
@@ -68,8 +58,6 @@ local function handle(rawData)
 end
 
 
-
-M.tick        = tick
 M.handle      = handle
 M.sendInputs  = sendInputs
 M.applyInputs = applyInputs

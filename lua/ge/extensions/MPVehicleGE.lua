@@ -204,6 +204,18 @@ local vehicles = {}
 -- @tfield integer gameVehicleID_N ..
 -- @usage local serverVehicleID = vehiclesMap[11171]
 local vehiclesMap = {}
+local vehiclesMapStorage = {}
+
+setmetatable(vehiclesMap, {
+    __newindex = function(tbl, key, value)
+        vehiclesMapStorage[key] = value
+		be:sendToMailbox("BeamMPServerVehIDs",lpack.encode(vehiclesMapStorage))
+		be:queueAllObjectLua("if MPVehicleVE then MPVehicleVE.updateServerVehicleIDs() end")
+    end,
+    __index = function(tbl, key)
+        return vehiclesMapStorage[key]
+    end,
+})
 
 --- Contains the Distances in meters from the Clients POV to the known Multiplayer Vehicles
 -- @table distanceMap
@@ -1130,7 +1142,9 @@ function Vehicle:delete()
 	end
 	if players[self.ownerID] and self.serverVehicleString then players[self.ownerID].vehicles.IDs[self.serverVehicleString] = nil players[self.ownerID].vehicles.objects[self.serverVehicleString] = nil end
 	if self.serverVehicleString then vehicles[self.serverVehicleString] = nil end
-
+	if self.gameVehicleID > 0 then
+		vehiclesMap[self.gameVehicleID] = nil
+	end
 	players_vehicle_configs[self.serverVehicleString] = nil
 
 	self = nil
@@ -1439,13 +1453,20 @@ local function applyVehSpawn(event)
 	end
 
 	local spawnedVehID = getGameVehicleID(event.serverVehicleID)
+	if spawnedVehID == -1 then
+		spawnedVehID = nil
+	end
+
+	dump("spawnedVehID",spawnedVehID, getObjectByID(spawnedVehID or -1))
 	local spawnedVeh = spawnedVehID and getObjectByID(spawnedVehID) or nil
+	dump("spawnedVeh", spawnedVeh)
 
 	if spawnedVeh then -- if a vehicle with this ID was found update the obj
 		log('W', 'applyVehSpawn', "(spawn)Updating vehicle from server "..vehicleName.." with id "..spawnedVehID)
 		spawn.setVehicleObject(spawnedVeh, {model=vehicleName, config=serialize(vehicleConfig), pos=pos, rot=rot, cling=true})
 		spawnedVeh:setField("protected", 0, protected or "0")
 		spawnedVeh:setField("absMode", 0, absMode or "")
+		vehiclesMap[spawnedVehID] = event.serverVehicleID
 	else
 		log('W', 'applyVehSpawn', "Spawning new vehicle "..vehicleName.." from server")
 		spawnedVeh = spawn.spawnVehicle(vehicleName, serialize(vehicleConfig), pos, rot, { autoEnterVehicle=false, vehicleName="multiplayerVehicle", cling=true})
@@ -1467,7 +1488,10 @@ local function applyVehSpawn(event)
 		vehicle.protected = protected
 		vehicle.absMode = absMode
 		vehiclesMap[spawnedVehID] = event.serverVehicleID
-
+		-- Notify launcher of spawned vehicle (used for keeping track of valid direct VE connections)
+		if vehiclesMap[gameVehicleID] then
+			MPCoreNetwork.send('Va:'..vehiclesMap[gameVehicleID])
+		end
 		players[vehicle.ownerID]:addVehicle(vehicle)
 	end
 
@@ -1477,6 +1501,8 @@ local function applyVehSpawn(event)
 
 	spawnedVeh:queueLuaCommand("hydros.onFFBConfigChanged(nil)")
 	spawnedVeh:queueLuaCommand("MPPowertrainVE.setIgnitionState("..ignitionLevel..")")
+
+	dump("vehiclesMap",vehiclesMap[spawnedVehID],vehiclesMapStorage)
 end
 
 local function applyVehEdit(serverID, data)
@@ -1561,8 +1587,9 @@ local function onVehicleSpawned(gameVehicleID)
 
 	local veh = getObjectByID(gameVehicleID)
 	local newJbeamName = veh:getJBeamFilename()
-
 	local vehicle = getVehicleByGameID(gameVehicleID)
+
+	dump("onVehicleSpawned",gameVehicleID,vehiclesMap[gameVehicleID],vehicle,"end")
 
 	if not vehicle or not vehicle.jbeam then -- If it's not an edit
 		log("I", "onVehicleSpawned", "New Vehicle Spawned "..gameVehicleID)
@@ -1597,6 +1624,10 @@ local function onVehicleSpawned(gameVehicleID)
 	if vehicle then
 		vehicle.jbeam = newJbeamName
 		vehicle.vehicleHeight = veh:getInitialHeight()
+		if vehiclesMap[gameVehicleID] then -- the vehicle lua reload requiers a new port so we need to notify the launcher again
+			MPCoreNetwork.send('Vd:'..vehiclesMap[gameVehicleID])
+			MPCoreNetwork.send('Va:'..vehiclesMap[gameVehicleID])
+		end
 	end
 end
 
@@ -1616,7 +1647,7 @@ local function spawnDestroyedVehicles(serverVehID)
 		return
 	end
 
-	vehicles[serverVehID].isSpawned = true
+	vehicles[serverVehID].isSpawned = false
 	vehicles[serverVehID].isDeleted = false
 
 	local playerOwnerName = vehicles[serverVehID].ownerName
@@ -1668,8 +1699,19 @@ local function onVehicleDestroyed(gameVehicleID)
 		if not vehicle then return end
 		local serverVehicleID = vehicle.serverVehicleString -- Get the serverVehicleID
 
+		-- Notify launcher of deleted vehicle (used for keeping track of valid direct VE connections)
+		if serverVehicleID then
+			MPCoreNetwork.send('Vd:'..serverVehicleID)
+		end
+
 		vehicle.isSpawned = false
 		vehicle.isDeleted = true
+		vehicle.getGameVehicleID = -1
+		vehiclesMap[gameVehicleID] = nil
+		if players[vehicle.ownerID] then -- remove vehicle object from player --TODO maybe remove from IDs?
+			players[vehicle.ownerID].vehicles.objects[vehicle.serverVehicleString] = nil
+		end
+
 
 		if onVehicleDestroyedAllowed then -- If function is not coming from onServerVehicleRemoved then
 			log('I', "onVehicleDestroyed", string.format("Vehicle %i (%s) removed by local player", gameVehicleID, serverVehicleID or "?"))
@@ -1857,6 +1899,12 @@ local function onServerVehicleSpawned(playerRole, playerNickname, serverVehicleI
 	if not decodedData then --JSON decode failed
 		log("E", "onServerVehicleSpawned", "Failed to spawn vehicle from "..playerNickname.."! (Invalid JSON data)")
 		return
+	end
+
+	-- Notify launcher of spawned vehicle (used for keeping track of valid direct VE connections)
+	-- This is done here instead of onVehicleSpawned because the serverVehicleID needs to be known
+	if serverVehicleID then
+		MPCoreNetwork.send('Va:'..serverVehicleID)
 	end
 
 	local playerServerID = tonumber(decodedData.pid) -- Server ID of the owner
@@ -2533,10 +2581,12 @@ local function onPreRender(dt)
 					end
 				end
 			else
-				queueApplyTimer = 0
-				applyQueuedEvents()
-				if not commands.isFreeCamera() then
-					commands.setFreeCamera()		-- Fix camera
+				if settings.getValue("enableQueueAuto") then
+					queueApplyTimer = 0
+					applyQueuedEvents()
+					if not commands.isFreeCamera() then
+						commands.setFreeCamera()		-- Fix camera
+					end
 				end
 			end
 		end

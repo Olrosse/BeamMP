@@ -139,7 +139,7 @@ local function onCouplerDetached(nodeId, obj2id, obj2nodeId)
 	lastNodeID2decoupled = obj2nodeId
 end
 
-local function updateGFX(dt)
+local function onBeamMPupdateGFX(dt)
 	if timer >= 0 then
 		timer = timer - dt
 	end
@@ -169,6 +169,6 @@ M.onExtensionLoaded  = onReset
 M.toggleCouplerState = toggleCouplerState
 M.onCouplerAttached  = onCouplerAttached
 M.onCouplerDetached  = onCouplerDetached
-M.updateGFX          = updateGFX
+M.onBeamMPupdateGFX  = onBeamMPupdateGFX
 
 return M

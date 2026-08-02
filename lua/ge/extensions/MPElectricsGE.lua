@@ -16,15 +16,6 @@ local M = {}
 local lastElectrics
 
 
---- Called on specified interval by MPUpdatesGE to simulate our own tick event to collect data.
-local function tick()
-	for i,v in pairs(MPVehicleGE.getPlayerVehicleObjects(MPConfig.getPlayerServerID())) do
-		if v then
-			v:queueLuaCommand("MPElectricsVE.check()")
-		end
-	end
-end
-
 
 
 --- Wraps player own vehicle electrics into a packet and sends it to the Server.
@@ -77,7 +68,6 @@ end
 
 
 
-M.tick 			 = tick
 M.handle     	 = handle
 M.sendElectrics  = sendElectrics
 M.onInit = function() setExtensionUnloadMode(M, "manual") end

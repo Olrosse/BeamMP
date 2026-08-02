@@ -16,6 +16,8 @@ local spawnVehicleIgnitionLevel
 local devices = powertrain.getDevices()
 
 local hasHydraulicCylinders = false
+local sBuffer = require("string.buffer")
+local packetBuff = sBuffer.new()
 -- ============= VARIABLES =============
 
 
@@ -47,7 +49,15 @@ local function getPowerTrainData()
 		end
 	end
 	if next(devicesToSend) then
-		obj:queueGameEngineLua("MPPowertrainGE.sendLivePowertrain(\'"..jsonEncode(devicesToSend).."\', "..obj:getID()..")")
+		if MPNetworkVE.socketConnected then
+			packetBuff:reset()
+			packetBuff:put('Yl:', v.mpServerID,":")
+			packetBuff:put(jsonEncode(devicesToSend))
+			local stringToSend = packetBuff:tostring()
+			MPNetworkVE.send(stringToSend)
+		else
+			obj:queueGameEngineLua("MPPowertrainGE.sendLivePowertrain(\'"..jsonEncode(devicesToSend).."\', "..obj:getID()..")")
+		end
 		-- print("Devices "..jsonEncode(devicesToSend).." sent")
 	end
 end
@@ -95,7 +105,15 @@ local function getEngineData() --TODO maybe hook the functions instead of checki
 	data = getCombustionEngineData(data)
 
 	if next(data) then
-		obj:queueGameEngineLua("MPPowertrainGE.sendEngineData(\'"..jsonEncode(data).."\', "..obj:getID()..")")
+		if MPNetworkVE.socketConnected then
+			packetBuff:reset()
+			packetBuff:put('Ye:', v.mpServerID,":")
+			packetBuff:put(jsonEncode(data))
+			local stringToSend = packetBuff:tostring()--packetBuff:tostring()
+			MPNetworkVE.send(stringToSend)
+		else
+			obj:queueGameEngineLua("MPPowertrainGE.sendEngineData(\'"..jsonEncode(data).."\', "..obj:getID()..")")
+		end
 	end
 end
 
@@ -123,7 +141,7 @@ end
 
 local periodicSynctime = 0
 
-local function updateGFX(dt)
+local function onBeamMPupdateGFX(dt)
 	if v.mpVehicleType == "R" then
 		if ignitionLevel and electrics.values.ignitionLevel ~= ignitionLevel then
 			electrics.setIgnitionLevel(ignitionLevel)
@@ -202,7 +220,7 @@ M.setHasHydraulicCylinders = setHasHydraulicCylinders
 M.getEngineData = getEngineData
 M.applyEngineData = applyEngineData
 M.setIgnitionState = setIgnitionState
-M.updateGFX = updateGFX
+M.onBeamMPupdateGFX = onBeamMPupdateGFX
 M.onExtensionLoaded = onExtensionLoaded
 
 
